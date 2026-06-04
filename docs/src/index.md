@@ -14,21 +14,23 @@ and Synthesis of Long-Range Structure in Non-Numerical Time Series"*
 ## Quick start
 
 ```julia
-using S5, Random
+using S5, StableRNGs
 
-rng = MersenneTwister(42)
+rng = StableRNG(42)
 
 # Property-based: spectral fGn + quantization
-g1 = SpectralFGN(0.8, [:a, :b, :c])
+g1 = SpectralFGN(0.8, [:a, :b, :c], [0.2, 0.3, 0.5])
 seq1 = generate(g1, 10_000; rng)
 
 # Model-based: Linear-Additive Markov Process
-g2 = LAMP(0.5, [:a, :b, :c]; d = 500)
+g2 = LAMP(0.5, [:a, :b, :c], [0.2, 0.3, 0.5]; d = 500, epsilon = 0.02)
 seq2 = generate(g2, 10_000; rng)
 
 # Model-based: Fractal Symbol Sequence  (H = (3-α)/2 = 0.75)
-g3 = FSS(1.5, [:a, :b, :c])
+g3 = FSS(1.5, [:a, :b, :c]; rates = [2.0, 3.0, 5.0])
 seq3 = generate(g3, 10_000; rng)
+
+empirical_marginal(seq1, g1.alphabet)
 
 # Save to INC format with full provenance metadata
 save_sequence("seq_pb1.inc", seq1, g1)
@@ -51,6 +53,23 @@ All three generators expose a Hurst parameter $H \in (1/2, 1)$:
 | `SpectralFGN` | `H`              | direct                 |
 | `LAMP`        | `beta` ($\beta$) | $H = (2 - \beta) / 2$ |
 | `FSS`         | `alpha` ($\alpha$) | $H = (3 - \alpha) / 2$ |
+
+## Controllability
+
+All implemented generators accept an explicit ordered alphabet. Duplicate alphabet
+entries are rejected because they make empirical frequency tables ambiguous.
+
+| Type | Marginal control | Local structure control |
+|------|------------------|-------------------------|
+| `SpectralFGN` | direct `marginal`; rank binning gives integer counts as close as possible to target | none |
+| `LAMP` | direct `marginal` mixed through `epsilon`; larger `epsilon` improves marginal control | history-weighted dependence, not arbitrary bigrams |
+| `FSS` | asymptotic `rates / sum(rates)` | none |
+
+Reproducible controllability studies live in `validation/`, for example:
+
+```julia
+julia --project=. validation/marginal_control.jl
+```
 
 ## INC output format
 

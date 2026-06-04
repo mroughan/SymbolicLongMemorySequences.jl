@@ -1,12 +1,13 @@
 """
-    LAMP(beta, alphabet [, marginal]; d = 1000)
+    LAMP(beta, alphabet [, marginal]; d = 1000, epsilon = 0.01)
 
 Model-based LRD symbol-sequence generator (MB1): Linear-Additive Markov Process.
 
 At each step the probability of the next symbol is a convex combination of
-one-hot indicator vectors for the most recent `d` history symbols:
+one-hot indicator vectors for the most recent `d` history symbols, mixed with
+an optional innovation term:
 
-    P(Xₜ = s | Xₜ₋₁, …, Xₜ₋ᵈ) = Σⱼ wⱼ · 𝟏[Xₜ₋ⱼ = s]
+    q(s) = (1 - epsilon) * Σⱼ wⱼ * 𝟏[Xₜ₋ⱼ = s] + epsilon * p(s)
 
 with power-law weights `wⱼ ∝ j^{-(1+β)}`, so the autocovariance decays as a
 power law with exponent `β`, giving Hurst parameter `H = (2−β)/2`.
@@ -19,6 +20,8 @@ power law with exponent `β`, giving Hurst parameter `H = (2−β)/2`.
 # Keyword Arguments
 - `d::Int = 1000`: history depth. The effective LRD range is bounded by `d`; for
   a sequence of length `n` set `d ≥ n^{1/(1+β)}` to avoid truncation artefacts.
+- `epsilon::Real = 0.01`: marginal innovation probability. Larger values improve
+  finite-sample marginal control but weaken history dependence.
 
 # Complexity
 O(n·d) time, O(d + n) memory.
@@ -32,8 +35,8 @@ for long range dependencies. *TSD*, 343–351.
 
 # Examples
 ```julia
-julia> g = LAMP(0.5, [:a, :b, :c]; d = 500)
-LAMP{Vector{Symbol}, Vector{Float64}}(β=0.5, k=3, d=500)
+julia> g = LAMP(0.5, [:a, :b, :c]; d = 500, epsilon = 0.02)
+LAMP{Vector{Symbol}, Vector{Float64}}(β=0.5, k=3, d=500, ε=0.02)
 
 julia> seq = generate(g, 5000; rng = MersenneTwister(42))
 julia> length(seq) == 5000 && eltype(seq) == Symbol
@@ -46,35 +49,40 @@ struct LAMP{A, M <: AbstractVector{<:Real}} <: LRDGenerator
     marginal :: M
     d        :: Int
     weights  :: Vector{Float64}
+    epsilon  :: Float64
 
     function LAMP{A, M}(beta::Float64, alphabet::A, marginal::M,
-                         d::Int, weights::Vector{Float64}) where {A, M <: AbstractVector{<:Real}}
+                         d::Int, weights::Vector{Float64},
+                         epsilon::Float64) where {A, M <: AbstractVector{<:Real}}
         (0.0 < beta < 1.0) ||
             throw(ArgumentError("beta must be in (0, 1), got $beta"))
+        validate_alphabet(alphabet)
         k = length(alphabet)
         length(marginal) == k ||
             throw(ArgumentError(
                 "marginal length $(length(marginal)) ≠ alphabet length $k"))
-        isapprox(sum(marginal), 1.0; atol = 1e-8) ||
-            throw(ArgumentError("marginal must sum to 1, got $(sum(marginal))"))
         d ≥ 1 || throw(ArgumentError("d must be ≥ 1, got $d"))
-        new{A, M}(beta, alphabet, marginal, d, weights)
+        0.0 ≤ epsilon ≤ 1.0 ||
+            throw(ArgumentError("epsilon must be in [0, 1], got $epsilon"))
+        new{A, M}(beta, alphabet, marginal, d, weights, epsilon)
     end
 end
 
 function LAMP(beta::Real, alphabet,
               marginal::AbstractVector{<:Real} =
                   fill(1.0 / length(alphabet), length(alphabet));
-              d::Int = 1000)
-    m  = Float64.(marginal)
+              d::Int = 1000,
+              epsilon::Real = 0.01)
+    m  = validate_probability_vector(marginal, "marginal")
     w  = [j^(-(1.0 + Float64(beta))) for j in 1:d]
     w ./= sum(w)
-    LAMP{typeof(alphabet), typeof(m)}(Float64(beta), alphabet, m, d, w)
+    LAMP{typeof(alphabet), typeof(m)}(Float64(beta), alphabet, m, d, w,
+                                      Float64(epsilon))
 end
 
 function Base.show(io::IO, g::LAMP)
     print(io, "LAMP{$(typeof(g.alphabet)), $(typeof(g.marginal))}",
-          "(β=$(g.beta), k=$(length(g.alphabet)), d=$(g.d))")
+          "(β=$(g.beta), k=$(length(g.alphabet)), d=$(g.d), ε=$(g.epsilon))")
 end
 
 """
@@ -84,7 +92,8 @@ Generate `n` symbols from a [`LAMP`](@ref) generator using a ring-buffer history
 
 The ring buffer stores the `d` most recent symbol indices. The next symbol is
 drawn from a probability vector formed by weighting each history element by its
-power-law weight `wⱼ`.
+power-law weight `wⱼ`, then mixing in the target marginal with weight
+`g.epsilon`.
 """
 function generate(g::LAMP, n::Int; rng::AbstractRNG = Random.default_rng())
     n ≥ 1 || throw(ArgumentError("n must be ≥ 1, got $n"))
@@ -103,6 +112,11 @@ function generate(g::LAMP, n::Int; rng::AbstractRNG = Random.default_rng())
         fill!(q, 0.0)
         for j in 1:d
             q[buf[mod1(head - j, d)]] += g.weights[j]
+        end
+        if g.epsilon > 0
+            @inbounds for i in 1:k
+                q[i] = (1 - g.epsilon) * q[i] + g.epsilon * g.marginal[i]
+            end
         end
 
         idx        = weighted_sample(rng, q)

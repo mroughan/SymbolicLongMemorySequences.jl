@@ -24,3 +24,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   properties, and INC round-trip.
 - Documenter.jl documentation with API reference.
 - GitHub Actions CI: tests on Julia 1.10 and latest stable.
+
+### Changed
+- `quantize_to_symbols` now uses deterministic rank binning with integer counts
+  from `bin_counts`, giving finite-sample marginals as close as possible to the
+  requested target.
+- `LAMP` now supports an `epsilon` marginal innovation term to improve
+  finite-sample marginal control and avoid finite-history absorption.
+- `FSS` Pareto renewal draws now use Distributions.jl.
+- Tests and validation studies use StableRNGs.jl for reproducible simulation.
+
+### Validation
+- Marginal/local-structure helpers: `target_marginal`, `empirical_marginal`,
+  `empirical_bigram`, `empirical_trigram`, `total_variation`, and
+  `rowwise_total_variation`.
+- `validation/` folder with a reproducible Monte Carlo marginal-control study.

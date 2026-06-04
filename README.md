@@ -33,25 +33,27 @@ media), yet almost all synthesis tools target numerical data. S5.jl fills that g
 
 ## Implemented Methods
 
-Six synthesis methods are provided, divided into two broad categories.
+Three synthesis methods are currently implemented. Additional methods from the
+grant proposal remain on the roadmap.
 
 ### Property-Based Methods
 
 These generate an underlying numerical LRD process and then map it to symbols.
 The LRD property is inherited from the numerical layer.
 
-| ID | Name | LRD mechanism | Short-range control | Complexity | Novel? |
-|----|------|--------------|---------------------|------------|--------|
-| PB1 | Spectral fGn + quantization | Spectral $1/f^\alpha$ shaping | Poor (set by quantization) | $O(n \log n)$ | No |
-| PB2 | Latent Gaussian categorical (LGCM) | fGn covariance matrix | Via per-symbol mean offsets | $O(n^2)$ / approx | No |
-| PB3 | Wavelet-cascade + Markov state machine | Wavelet coefficient cascade | Markov transition matrices | $O(n)$ | Partial |
+| ID | Name | Status | LRD mechanism | Short-range control | Complexity | Novel? |
+|----|------|--------|---------------|---------------------|------------|--------|
+| PB1 | Spectral fGn + quantization | Implemented | Spectral $1/f^\alpha$ shaping | Poor (set by quantization) | $O(n \log n)$ | No |
+| PB2 | Latent Gaussian categorical (LGCM) | Planned | fGn covariance matrix | Via per-symbol mean offsets | $O(n^2)$ / approx | No |
+| PB3 | Wavelet-cascade + Markov state machine | Planned | Wavelet coefficient cascade | Markov transition matrices | $O(n)$ | Partial |
 
 **PB1 — Spectral fGn + quantization.**
 Fractional Gaussian noise with Hurst parameter $H$ is synthesised using the fast
 spectral method of Paxson (1997) or circulant embedding (Dieker 2004). The real-valued
-output is partitioned into $k$ amplitude bins; each bin maps to one symbol, with bin
-widths chosen to match a target marginal distribution (e.g., uniform or Zipf). This is
-the simplest approach and serves as the primary validation baseline.
+output is sorted into $k$ rank bins; each bin maps to one symbol, with integer bin
+counts chosen to match a target marginal distribution as closely as possible for the
+finite sample. This is the simplest approach and serves as the primary validation
+baseline.
 
 **PB2 — Latent Gaussian categorical model (LGCM).**
 A vector of $k$ correlated Gaussian processes (one per symbol) shares a common fGn
@@ -74,18 +76,20 @@ both $H$ and short-range structure at $O(n)$ cost.
 
 These produce LRD through the stochastic model itself rather than via mapping.
 
-| ID | Name | LRD mechanism | Short-range control | Complexity | Novel? |
-|----|------|--------------|---------------------|------------|--------|
-| MB1 | Linear-Additive Markov Process (LAMP) | Power-law history weights | Weight tensor | $O(n \cdot d)$ | No |
-| MB2 | Heavy-tailed On/Off doubly-stochastic Markov chain | Pareto regime sojourn times | Per-regime Markov chains | $O(n)$ | No |
-| MB3 | Fractal Symbol Sequence (FSS) via FRP/FSNP | Fractal point process inter-arrivals | Poor (independent streams) | $O(n \log n)$ | **Yes** |
+| ID | Name | Status | LRD mechanism | Short-range control | Complexity | Novel? |
+|----|------|--------|---------------|---------------------|------------|--------|
+| MB1 | Linear-Additive Markov Process (LAMP) | Implemented | Power-law history weights | Weight tensor | $O(n \cdot d)$ | No |
+| MB2 | Heavy-tailed On/Off doubly-stochastic Markov chain | Planned | Pareto regime sojourn times | Per-regime Markov chains | $O(n)$ | No |
+| MB3 | Fractal Symbol Sequence (FSS) via FRP/FSNP | Implemented | Fractal point process inter-arrivals | Poor (independent streams) | $O(n \cdot k)$ | **Yes** |
 
 **MB1 — Linear-Additive Markov Process (LAMP).**
 Transition probabilities are a weighted sum over the history,
 
-$$P(X_t = s \mid X_{t-1}, X_{t-2}, \ldots) = \sum_{k=1}^{d} w_k \cdot \mathbf{1}[X_{t-k} = s],$$
+$$q(s) = (1-\epsilon)\sum_{k=1}^{d} w_k \cdot \mathbf{1}[X_{t-k} = s] + \epsilon p(s),$$
 
 with weights $w_k \propto k^{-(1+\beta)}$ enforcing a power-law ACF decay directly.
+The small innovation term $\epsilon p(s)$ keeps the requested marginal distribution
+active after initialisation and prevents finite-history absorption.
 The Custom Decay Language Model (CDLM) of Singh, Greenberg & Klakow (2016) is a close
 variant demonstrated on text. For large alphabets the weight tensor may be compressed
 via low-rank approximations.
@@ -108,6 +112,30 @@ inter-arrival times (Definition 4 of the proposal). The known "missing scales" p
 of naive FRP construction (Roughan, Yates & Veitch 1999) is addressed by using FSNP
 or a corrected FRP with a verified scale range. This is the novel method proposed
 specifically within the grant project.
+
+---
+
+## Controllability
+
+All implemented generators accept an explicit ordered alphabet and reject duplicate
+alphabet entries. `target_marginal(g)` reports the marginal distribution the generator
+claims to target; `empirical_marginal(seq, alphabet)` and `empirical_bigram(seq,
+alphabet)` provide lightweight checks for simulated data.
+
+| Type | Alphabet | Marginal control | Bigram/trigram control |
+|------|----------|------------------|------------------------|
+| `SpectralFGN` | explicit `alphabet` | direct `marginal`; rank binning gives near-exact finite-sample counts | no direct control |
+| `LAMP` | explicit `alphabet` | direct `marginal` mixed through `epsilon`; larger `epsilon` improves marginal control but weakens history dependence | no arbitrary target table |
+| `FSS` | explicit `alphabet` | `rates / sum(rates)` asymptotically | no direct control |
+
+Reproducible simulation studies live in `validation/`. For example:
+
+```julia
+julia --project=. validation/marginal_control.jl
+```
+
+These studies test controllability of simulated data; LRD-parameter estimation is
+intended for a future separate estimator package.
 
 ---
 

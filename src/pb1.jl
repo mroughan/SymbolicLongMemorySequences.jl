@@ -51,12 +51,11 @@ struct SpectralFGN{A, M <: AbstractVector{<:Real}} <: LRDGenerator
                                 marginal::M) where {A, M <: AbstractVector{<:Real}}
         (0.5 < H < 1.0) ||
             throw(ArgumentError("H must be in (0.5, 1.0), got $H"))
+        validate_alphabet(alphabet)
         k = length(alphabet)
         length(marginal) == k ||
             throw(ArgumentError(
                 "marginal length $(length(marginal)) ≠ alphabet length $k"))
-        isapprox(sum(marginal), 1.0; atol = 1e-8) ||
-            throw(ArgumentError("marginal must sum to 1, got $(sum(marginal))"))
         new{A, M}(H, alphabet, marginal)
     end
 end
@@ -64,7 +63,7 @@ end
 function SpectralFGN(H::Real, alphabet,
                      marginal::AbstractVector{<:Real} =
                          fill(1.0 / length(alphabet), length(alphabet)))
-    m = Float64.(marginal)
+    m = validate_probability_vector(marginal, "marginal")
     SpectralFGN{typeof(alphabet), typeof(m)}(Float64(H), alphabet, m)
 end
 

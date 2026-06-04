@@ -12,25 +12,32 @@ end
         g = LAMP(0.5, [:a, :b, :c])
         @test g.beta == 0.5
         @test g.d    == 1000
+        @test g.epsilon == 0.01
         @test isapprox(sum(g.marginal), 1.0)
         @test isapprox(sum(g.weights), 1.0)
         @test g.weights[1] > g.weights[2] > g.weights[end]
 
-        g2 = LAMP(0.3, [:x, :y]; d = 200)
+        g2 = LAMP(0.3, [:x, :y]; d = 200, epsilon = 0.2)
         @test g2.d == 200
+        @test g2.epsilon == 0.2
     end
 
     @testset "Constructor — argument errors" begin
         @test_throws ArgumentError LAMP(0.0,  [:a, :b])
         @test_throws ArgumentError LAMP(1.0,  [:a, :b])
         @test_throws ArgumentError LAMP(0.5,  [:a, :b], [0.3, 0.5])
+        @test_throws ArgumentError LAMP(0.5,  [:a, :b], [-0.1, 1.1])
+        @test_throws ArgumentError LAMP(0.5,  [:a, :b], [0.5, Inf])
         @test_throws ArgumentError LAMP(0.5,  [:a, :b, :c], [0.5, 0.5])
         @test_throws ArgumentError LAMP(0.5,  [:a, :b]; d = 0)
+        @test_throws ArgumentError LAMP(0.5,  [:a, :b]; epsilon = -0.1)
+        @test_throws ArgumentError LAMP(0.5,  [:a, :b]; epsilon = 1.1)
+        @test_throws ArgumentError LAMP(0.5,  [:a, :a])
     end
 
     @testset "generate — output type and length" begin
         g   = LAMP(0.5, ['a', 'b', 'c']; d = 100)
-        seq = generate(g, 2_000; rng = MersenneTwister(10))
+        seq = generate(g, 2_000; rng = StableRNG(10))
         @test length(seq) == 2_000
         @test eltype(seq) == Char
         @test all(c ∈ ('a', 'b', 'c') for c in seq)
@@ -45,7 +52,7 @@ end
         g = LAMP(0.7, [:a, :b, :c]; d = 50)
         observed = Set{Symbol}()
         for seed in 1:20
-            seq = generate(g, 500; rng = MersenneTwister(seed))
+            seq = generate(g, 500; rng = StableRNG(seed))
             union!(observed, seq)
         end
         @test :a ∈ observed
@@ -59,8 +66,8 @@ end
     end
 
     @testset "ACF is positive and decreasing (statistical)" begin
-        g   = LAMP(0.3, [:a, :b]; d = 500)
-        seq = generate(g, 20_000; rng = MersenneTwister(200))
+        g   = LAMP(0.3, [:a, :b]; d = 500, epsilon = 0.005)
+        seq = generate(g, 20_000; rng = StableRNG(200))
         x   = Float64.(seq .== :a)
 
         acf1  = _acf(x, 1)
@@ -70,6 +77,11 @@ end
         @test acf1  > 0
         @test acf10 > 0
         @test acf1  > acf10 > acf50
+    end
+
+    @testset "target_marginal" begin
+        g = LAMP(0.5, [:a, :b], [0.2, 0.8]; d = 50)
+        @test target_marginal(g) == [0.2, 0.8]
     end
 
 end

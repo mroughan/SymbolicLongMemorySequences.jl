@@ -17,12 +17,15 @@ using Statistics: mean, std
         @test_throws ArgumentError SpectralFGN(0.5,  [:a, :b])              # H = 0.5
         @test_throws ArgumentError SpectralFGN(1.0,  [:a, :b])              # H = 1.0
         @test_throws ArgumentError SpectralFGN(0.8,  [:a, :b], [0.3, 0.5]) # sum ≠ 1
+        @test_throws ArgumentError SpectralFGN(0.8,  [:a, :b], [-0.1, 1.1])
+        @test_throws ArgumentError SpectralFGN(0.8,  [:a, :b], [0.5, NaN])
         @test_throws ArgumentError SpectralFGN(0.8,  [:a, :b, :c], [0.5, 0.5]) # length mismatch
+        @test_throws ArgumentError SpectralFGN(0.8,  [:a, :a])
     end
 
     @testset "generate — output type and length" begin
         g   = SpectralFGN(0.75, [:a, :b, :c])
-        seq = generate(g, 1_000; rng = MersenneTwister(1))
+        seq = generate(g, 1_000; rng = StableRNG(1))
         @test length(seq) == 1_000
         @test eltype(seq) == Symbol
         @test all(s ∈ (:a, :b, :c) for s in seq)
@@ -30,7 +33,7 @@ using Statistics: mean, std
 
     @testset "generate — uniform marginal" begin
         g   = SpectralFGN(0.8, [:a, :b, :c, :d])
-        seq = generate(g, 8_000; rng = MersenneTwister(2))
+        seq = generate(g, 8_000; rng = StableRNG(2))
         for s in (:a, :b, :c, :d)
             @test isapprox(count(==(s), seq) / 8_000, 0.25; atol = 0.04)
         end
@@ -39,7 +42,8 @@ using Statistics: mean, std
     @testset "generate — non-uniform marginal" begin
         mar = [0.1, 0.4, 0.5]
         g   = SpectralFGN(0.8, [1, 2, 3], mar)
-        seq = generate(g, 10_000; rng = MersenneTwister(3))
+        seq = generate(g, 10_000; rng = StableRNG(3))
+        @test [count(==(s), seq) for s in [1, 2, 3]] == bin_counts(mar, length(seq))
         for (s, p) in zip([1,2,3], mar)
             @test isapprox(count(==(s), seq) / 10_000, p; atol = 0.03)
         end
@@ -49,6 +53,11 @@ using Statistics: mean, std
         g = SpectralFGN(0.8, [:a])
         @test_throws ArgumentError generate(g, 3)
         @test_throws ArgumentError generate(g, 0)
+    end
+
+    @testset "target_marginal" begin
+        g = SpectralFGN(0.8, [:a, :b, :c], [0.2, 0.3, 0.5])
+        @test target_marginal(g) == [0.2, 0.3, 0.5]
     end
 
     @testset "_fgn_spectral — length and normalisation" begin

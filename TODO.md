@@ -1,263 +1,247 @@
-# S5.jl — Implementation TODO
+# S5.jl TODO
 
-This file tracks the planned implementation of all six LRD symbol-sequence synthesis
-methods. Methods are grouped into property-based and model-based categories as described
-in the ARC Discovery Grant proposal (Roughan & Willinger 2023).
+This package is the synthesis side of the ARC Discovery Grant project
+"Analysis and Synthesis of Long-Range Structure in Non-Numerical Time Series"
+(Roughan & Willinger, 2023).
 
-For each method the following must be completed:
-- [ ] Core generator function(s) with docstrings and examples
-- [ ] Unit tests validating basic output (type, length, alphabet membership)
-- [ ] Statistical validation test: estimate $H$ from generated sequence and compare to target
-- [ ] Benchmark: measure wall time and memory for $n \in \{10^4, 10^5, 10^6\}$
-- [ ] Update CHANGELOG.md on completion
+Estimator development will live elsewhere. S5.jl should therefore focus on:
 
----
-
-## Priority 1 (implement first)
-
-### PB1 — Spectral fGn + Quantization
-
-**Status:** Not started
-
-**Description.**
-Generate fractional Gaussian noise (fGn) with Hurst parameter $H \in (1/2, 1)$ using
-the fast spectral (FFT) method, then map the real-valued output to symbols by amplitude
-quantization.
-
-**Algorithm.**
-1. Construct the fGn power spectrum $S(f) \propto |f|^{-(2H-1)}$ on the DFT grid.
-2. Fill with complex Gaussian noise scaled by $\sqrt{S(f)}$, respecting conjugate symmetry.
-3. Take the real part of the IFFT to obtain fGn of length $n$.
-4. Map to symbols: sort thresholds to match a target marginal distribution $\mathbf{p}$ over
-   the alphabet; assign each sample to the bin it falls in.
-
-**Key parameters.**
-- `H::Float64` — Hurst parameter, $H \in (1/2, 1)$
-- `n::Int` — sequence length
-- `alphabet` — ordered collection of symbols (e.g., `['a','b','c']`)
-- `marginal::Vector{Float64}` — target symbol probabilities (defaults to uniform)
-
-**References.** Paxson (1997) CCR 27; Dieker (2004) PhD thesis U. Twente.
-
-**Validation.**
-- Estimate $H$ from the generated sequence using a spectral log-log regression (the
-  periodogram slope at low frequencies) and check it matches the target within tolerance.
-- Check marginal symbol frequencies converge to `marginal` as $n \to \infty$.
-
-**Known limitations.**
-- Short-range structure (bigrams, etc.) is determined entirely by the quantization grid
-  and cannot be prescribed independently.
-- The Paxson method is approximate at high frequencies; the circulant embedding
-  alternative is exact but requires $n$ to be a power of 2 or uses zero-padding.
+- generating symbol sequences with explicit provenance;
+- exposing clear controls for alphabet, marginal distribution, and local structure;
+- measuring how well each generator achieves the controls it claims to support;
+- providing reproducible simulation studies that external estimator packages can reuse.
 
 ---
 
-### MB1 — Linear-Additive Markov Process (LAMP)
+## Current Status
 
-**Status:** Not started
+Implemented:
 
-**Description.**
-Generate a finite-state symbol sequence whose transition probabilities are a weighted
-linear combination of the recent history, with power-law weights that enforce a
-prescribed ACF decay exponent $\beta$.
+- [x] Common generator interface: `generate(g, n; rng)`.
+- [x] `SpectralFGN` (PB1): spectral fGn plus quantization.
+- [x] `LAMP` (MB1): Linear-Additive Markov Process.
+- [x] `FSS` (MB3): Fractal Symbol Sequence via independent Pareto renewal streams.
+- [x] INC output with provenance metadata via `save_sequence`.
+- [x] Basic unit tests for construction, output length/type, alphabet membership, and
+      simple marginal checks.
+- [x] Documenter docs and changelog entry for v0.1.0.
+- [x] Stable reproducibility support via StableRNGs in tests and validation studies.
+- [x] Random-variable support via Distributions.jl for Pareto renewal sampling.
 
-**Algorithm.**
-1. Choose history depth $d$ (truncation of the infinite sum).
-2. Construct weights $w_k = k^{-(1+\beta)} / \sum_{j=1}^{d} j^{-(1+\beta)}$ for $k = 1, \ldots, d$.
-3. Initialise with $d$ symbols drawn from the marginal distribution $\mathbf{p}$.
-4. At each step $t$, compute the (unnormalised) probability vector
-   $\mathbf{q} = \sum_{k=1}^{d} w_k \, \mathbf{e}_{X_{t-k}}$,
-   normalise to obtain $\mathbf{q} / \|\mathbf{q}\|_1$, and draw the next symbol.
+Not yet implemented:
 
-**Key parameters.**
-- `beta::Float64` — ACF decay exponent, $\beta \in (0, 1)$; maps to $H = (2-\beta)/2$
-- `n::Int` — sequence length
-- `alphabet` — symbol set
-- `d::Int` — history depth (default: auto-selected as $\lceil n^{1/(1+\beta)} \rceil$)
-- `marginal::Vector{Float64}` — stationary marginal (defaults to uniform)
+- [ ] PB2: Latent Gaussian Categorical Model.
+- [ ] PB3: Wavelet-cascade driving a Markov state machine.
+- [ ] MB2: Heavy-tailed On/Off doubly-stochastic Markov chain.
+- [ ] Benchmark suite.
+- [x] Initial simulation studies of marginal controllability.
+- [ ] Expanded simulation studies of local-structure controllability.
 
-**References.** Kumar, Raghu, Sarlos & Tomkins (WWW 2017); Singh, Greenberg & Klakow
-(TSD 2016) for the CDLM variant.
+Deferred to a future estimation package:
 
-**Validation.**
-- Estimate $\beta$ from the empirical ACF on a log-log plot and compare to target.
-- Verify that marginal symbol frequencies match `marginal`.
-- Check that the "missing scales" issue does not arise: confirm LRD is visible across
-  at least three decades of lag.
+- Spectral, wavelet, Whittle, recurrence-time, Hill, and count-variance estimators of
+  LRD parameters.
+- Strong validation that generated sequences recover a target Hurst parameter under a
+  particular estimator.
 
-**Known limitations.**
-- For large alphabets the $O(|\Sigma| \cdot d)$ cost per step can be expensive; a
-  sparse or low-rank representation of the weight tensor may be needed.
-- The effective $\beta$ depends on the truncation depth $d$; sequences shorter than
-  $d^{1+\beta}$ may not show asymptotic LRD.
+S5.jl may include light sanity checks that guard against obvious regressions, but it
+should not grow into the estimator package.
 
 ---
 
-### MB3 — Fractal Symbol Sequence (FSS) via FRP/FSNP
+## Priority 1: Control Contracts
 
-**Status:** Not started
+Define, document, and test what each generator can naturally control.
 
-**Description.**
-Each symbol in the alphabet is assigned an independent fractal point process governing
-the times at which that symbol is emitted. The sequence is the merge of all symbol
-streams, with the symbol whose next event time is smallest being the output at each step.
+### Alphabet Control
 
-**Algorithm.**
-1. For each symbol $s_i$, draw inter-arrival times $\tau \sim \text{Pareto}(\alpha, x_\text{min})$
-   with $\alpha \in (1, 2)$ (giving $H = (3-\alpha)/2$). Use a Fractal Shot Noise
-   Process (FSNP) rather than a naive FRP to avoid the "missing scales" problem [47].
-2. Maintain a priority queue of (next\_event\_time, symbol) pairs.
-3. Pop the minimum, emit that symbol, draw the next inter-arrival for that symbol, and
-   push back.
-4. Repeat for $n$ emissions.
+All generators should accept an ordered `alphabet` collection and emit elements from
+that collection with the same element type.
 
-**Key parameters.**
-- `alpha::Float64` — Pareto tail index, $\alpha \in (1, 2)$; gives $H = (3-\alpha)/2$
-- `n::Int` — number of symbols to generate
-- `alphabet` — symbol set
-- `rates::Vector{Float64}` — base arrival rates per symbol (controls marginal frequencies)
-- `x_min::Float64` — Pareto scale parameter
+- [x] `SpectralFGN(H, alphabet, marginal = uniform)`.
+- [x] `LAMP(beta, alphabet, marginal = uniform; d = 1000)`.
+- [x] `FSS(alpha, alphabet; rates = ones(k), x_min = 1.0)`.
+- [x] Add explicit tests for non-symbol alphabets:
+      `Char`, `String`, `Int`, `Symbol`, and small custom immutable values if useful.
+- [x] Decide whether duplicate alphabet entries should be rejected.
+- [x] Add a shared alphabet-validation helper if the constructors start duplicating
+      checks.
 
-**References.** Lowen & Teich (Fractals 1995); Ryu & Lowen (Stochastic Models 1998);
-Roughan, Yates & Veitch (1999) on the missing-scales pitfall.
+### Marginal Control
 
-**Validation.**
-- Confirm that the count-process variance grows faster than linearly (Definition 3 from
-  the proposal), and fit the growth exponent.
-- Verify the LRD scale range covers at least three decades.
-- Check marginal symbol frequencies match `rates / sum(rates)`.
+Users should be able to specify target marginal probabilities over the alphabet when a
+method has a meaningful marginal-control knob.
 
-**Known limitations.**
-- Independent streams for each symbol make it hard to prescribe joint symbol statistics
-  (bigrams); this is a fundamental limitation of the FSS approach.
-- Care is required to ensure the FSNP scale range is not smaller than the sequence
-  length (the Roughan–Yates–Veitch pitfall).
+Current behavior:
 
----
+- `SpectralFGN`: accepts `marginal`; rank binning gives integer finite-sample counts
+  as close as possible to the requested marginal.
+- `LAMP`: accepts `marginal` and mixes it into the history-based probabilities through
+  `epsilon`. Larger `epsilon` improves finite-sample marginal control but weakens
+  history dependence.
+- `FSS`: accepts `rates`; target marginal is `rates / sum(rates)` asymptotically.
 
-## Priority 2 (implement after Priority 1 and test infrastructure is in place)
+Tasks:
 
-### PB2 — Latent Gaussian Categorical Model (LGCM)
+- [x] Add `target_marginal(g)` and/or `marginal_control(g)` helpers so tests and docs
+      can ask a generator what it claims to control.
+- [x] Add Monte Carlo marginal-control tests across many independent sequences:
+      compare mean empirical frequencies, standard deviations, and worst-case errors
+      to the declared target.
+- [ ] Test marginal control across alphabet sizes, e.g. `k in (2, 4, 16, 64)`.
+- [x] Test skewed marginals, including Zipf-like distributions, because this is central
+      for text and word-token sequences.
+- [x] For `SpectralFGN`, test that empirical marginals are close even per sequence.
+- [x] For `FSS`, test convergence of frequencies as `n` and replicate count increase.
+- [x] For `LAMP`, investigate whether the current process needs an innovation or
+      teleportation term, e.g.
+      `q = (1 - epsilon) * history_weights + epsilon * marginal`,
+      to make marginal control robust and prevent finite-history absorption.
 
-**Status:** Not started
+Suggested simulation grid:
 
-**Description.**
-A vector of $k$ correlated Gaussian processes, one per symbol, shares an fGn covariance
-structure. At each time step the symbol is the argmax of the latent vector. Per-symbol
-means shift marginal probabilities.
+- `n in (1_000, 10_000, 100_000)`;
+- `replicates in (50, 200)` depending on runtime;
+- `k in (2, 8, 32)`;
+- marginals: uniform, moderately skewed, Zipf-like.
 
-**Algorithm.**
-1. Construct the fGn covariance matrix $\Sigma_{ij} = \tfrac{1}{2}(|i|^{2H} + |j|^{2H} - |i-j|^{2H})$
-   for indices $i, j = 1, \ldots, n$ (or use a Toeplitz approximation for large $n$).
-2. For each symbol $s_m$, draw a length-$n$ Gaussian vector $\mathbf{z}^{(m)} \sim \mathcal{N}(\mu_m \mathbf{1}, \Sigma)$.
-3. At each step $t$, emit symbol $\arg\max_m z^{(m)}_t$.
-4. Set means $\mu_m$ to achieve a target marginal via a root-finding step (bisection on
-   the resulting multinomial probabilities, using Monte Carlo estimates if needed).
+Store aggregate results, not every generated sequence.
 
-**Key parameters.**
-- `H::Float64` — Hurst parameter
-- `n::Int` — sequence length
-- `alphabet` — symbol set
-- `marginal::Vector{Float64}` — target symbol probabilities
-- `approx::Symbol` — `:exact` (Cholesky, $O(n^2)$ memory) or `:circulant` (FFT, approximate)
+### Local Structure Control
 
-**References.** Gal, Chen & Ghahramani (ICML 2015).
+Users may want to specify short-range structure such as bigram or trigram
+probabilities. Not every generator can support this naturally, so S5.jl should expose
+capabilities rather than pretending all methods can do everything.
 
-**Validation.**
-- Estimate $H$ from the indicator series $\mathbf{1}[X_t = s]$ for each symbol and
-  check consistency with input $H$.
-- Verify marginal symbol frequencies match `marginal`.
+Current capability:
 
-**Known limitations.**
-- Exact Cholesky factorisation is $O(n^3)$ time and $O(n^2)$ memory; only feasible for
-  short sequences. Circulant/FFT approximation is needed for $n > 10^4$.
+- `SpectralFGN`: no direct bigram/trigram control. Local structure is induced by the
+  latent Gaussian path and quantization thresholds.
+- `LAMP`: controls dependence through history weights, but not arbitrary user-specified
+  bigram/trigram probabilities in the current implementation.
+- `FSS`: no direct bigram/trigram control because symbol streams are independent.
+- `PB3` and `MB2`: natural places to support Markov transition matrices and therefore
+  bigram control.
 
----
+Tasks:
 
-### PB3 — Wavelet-Cascade Driving a Markov State Machine
-
-**Status:** Not started
-
-**Description.**
-A latent LRD intensity signal is synthesised via a wavelet cascade. This signal
-continuously selects among a set of Markov transition matrices, so local (bigram)
-structure is prescribed by the matrices while LRD is injected at all scales by the
-wavelet layer.
-
-**Algorithm.**
-1. Generate a wavelet-synthesised LRD signal $\lambda_t$ (using a log-normal or
-   multiplicative cascade on wavelet coefficients, as in Roughan, Veitch & Abry 2001).
-2. Define $R$ "regimes" with corresponding Markov transition matrices
-   $\{P^{(1)}, \ldots, P^{(R)}\}$. Partition the range of $\lambda_t$ into $R$ bins.
-3. At each step $t$, look up the regime $r_t = \text{bin}(\lambda_t)$ and draw the next
-   symbol from the row $P^{(r_t)}_{X_{t-1}, \cdot}$.
-
-**Key parameters.**
-- `H::Float64` — Hurst parameter for the wavelet layer
-- `n::Int` — sequence length
-- `transition_matrices::Vector{Matrix{Float64}}` — one $|\Sigma| \times |\Sigma|$ matrix per regime
-- `n_regimes::Int` — number of regimes $R$ (default: 2)
-
-**References.** Roughan, Veitch & Abry (IEEE/ACM ToN 2001).
-
-**Validation.**
-- Estimate $H$ from the generated sequence and compare to the wavelet-layer target.
-- Verify that empirical bigram frequencies match those implied by the transition matrices
-  and the stationary distribution over regimes.
-
-**Known limitations.**
-- The coupling between the wavelet layer and the Markov layer adds parameters that must
-  be calibrated; the effective $H$ of the symbol sequence is not identical to the $H$
-  of the wavelet signal and must be verified empirically.
+- [ ] Define a short-range specification type, for example:
+      `MarkovSpec(alphabet, transition_matrix)` for bigram control.
+- [ ] Consider a higher-order form for trigram control, e.g. a sparse mapping from
+      `(previous_symbol_1, previous_symbol_2)` to next-symbol probabilities.
+- [x] Add validation helpers for local structure:
+      empirical unigram, bigram, and trigram frequency tables;
+      total variation distance from a target table;
+      row-wise transition error for Markov matrices.
+- [ ] Add capability docs: each generator should state whether it supports
+      `:marginal`, `:bigram`, `:trigram`, and how strongly.
+- [ ] Use these specs first in `MB2`, then in `PB3`.
 
 ---
 
-### MB2 — Heavy-Tailed On/Off Doubly-Stochastic Markov Chain
+## Priority 2: Empirical Controllability Tests
 
-**Status:** Not started
+These tests do not estimate LRD. They test whether the generator respects user-facing
+controls.
 
-**Description.**
-A Markov chain alternates between two (or more) regimes. Sojourn times follow a Pareto
-distribution with tail index $\alpha \in (1, 2)$, giving $H = (3-\alpha)/2$. Within
-each regime a distinct (SRD) Markov chain governs symbol emissions.
+### Unit Tests
 
-**Algorithm.**
-1. Initialise in regime $r \in \{1, \ldots, R\}$ with a sojourn length
-   $L \sim \text{Pareto}(\alpha, L_\text{min})$ rounded to an integer.
-2. For $L$ steps, draw symbols from the transition matrix $P^{(r)}$.
-3. Draw the next regime $r'$ from a regime-switching matrix $Q$ and a new sojourn $L'$.
-4. Repeat until $n$ symbols are generated.
+- [x] Constructor rejects invalid marginals: wrong length, negative entries, all-zero,
+      and non-finite values.
+- [x] Constructor rejects invalid rates for `FSS`: wrong length, non-positive, and
+      non-finite values.
+- [x] Generated sequence uses only the supplied alphabet.
+- [x] Generated sequence preserves expected element type.
+- [x] Reproducibility with fixed RNG seeds.
 
-**Key parameters.**
-- `alpha::Float64` — Pareto tail index, $\alpha \in (1, 2)$
-- `n::Int` — sequence length
-- `transition_matrices::Vector{Matrix{Float64}}` — one per regime
-- `switching_matrix::Matrix{Float64}` — regime-to-regime transition probabilities $Q$
-- `L_min::Float64` — minimum sojourn length
+### Simulation Tests
 
-**References.** Garrett & Willinger (ACM Sigcomm 1994); Ryu & Lowen (Stochastic Models 1998).
+Keep these separate from fast unit tests if runtime becomes large.
 
-**Validation.**
-- Estimate $H$ from the count-process variance growth and compare to
-  $(3-\alpha)/2$.
-- Verify that empirical bigram frequencies in each regime match the corresponding
-  transition matrix.
-- Check for the missing-scales problem: confirm LRD is visible across at least three
-  decades of lag.
+- [x] `test/marginal_control.jl`: repeated simulations for each implemented generator.
+- [ ] `test/local_structure.jl`: empirical bigram/trigram tools, initially tested on
+      simple iid and Markov baselines.
+- [ ] Decide whether large simulations belong under `test/` with `@testset`, under
+      `validation/`, or under `examples/` as reproducible scripts.
+- [ ] Write summary tables to `data/validation/results/` only if those outputs are
+      intended to be tracked.
 
-**Known limitations.**
-- The LRD scale range is bounded by the longest sojourn times generated; for short
-  sequences this can limit the apparent LRD to fewer decades than desired.
+Useful metrics:
+
+- empirical marginal vector;
+- absolute error and total variation distance from target marginal;
+- distribution of errors across replicates;
+- confidence intervals for Monte Carlo error;
+- bigram/trigram total variation distance where a target exists;
+- runtime and allocation counts.
 
 ---
 
-## Cross-Cutting Tasks
+## Priority 3: Benchmarks
 
-- [ ] Define a common Julia interface (`generate(method, n, alphabet; kwargs...)`) that
-      all six methods implement.
-- [ ] Write a shared statistical validation suite (`test/validate_lrd.jl`) that applies
-      a spectral $H$ estimator and a count-variance test to any generated sequence.
-- [ ] Write benchmarks (`benchmark/benchmarks.jl`) using BenchmarkTools.jl for all methods.
-- [ ] Set up Project.toml and Manifest.toml with required dependencies.
-- [ ] Create CHANGELOG.md and update it as each method is completed.
-- [ ] Add AI disclosure to README.md (done).
+- [ ] Add `benchmark/benchmarks.jl` using BenchmarkTools.jl.
+- [ ] Measure wall time and allocations for `n in (10^4, 10^5, 10^6)`.
+- [ ] Include alphabet sizes `k in (2, 8, 64)` where feasible.
+- [ ] Include skewed marginal/rate settings.
+- [ ] Report complexity-relevant parameters:
+      `d` for `LAMP`, `k` for `FSS`, FFT length for `SpectralFGN`.
+
+---
+
+## Priority 4: Next Generators
+
+### MB2: Heavy-Tailed On/Off Doubly-Stochastic Markov Chain
+
+Implement next if the goal is controllable local structure.
+
+- [ ] Define constructor accepting `alphabet`, `transition_matrices`,
+      `switching_matrix`, `alpha`, and `L_min`.
+- [ ] Validate Markov matrices: square, row-stochastic, non-negative, matching alphabet.
+- [ ] Generate regime sojourns from a heavy-tailed distribution.
+- [ ] Emit symbols from the active regime's transition matrix.
+- [ ] Test marginal and bigram control within regimes and in aggregate.
+- [ ] Document that aggregate marginals depend on regime occupancy and transition
+      stationary distributions.
+
+### PB3: Wavelet-Cascade Driving a Markov State Machine
+
+Implement after the local-structure specification is settled.
+
+- [ ] Reuse `MarkovSpec` or equivalent transition-matrix interface.
+- [ ] Generate a latent LRD driver.
+- [ ] Map driver values to regimes.
+- [ ] Emit via regime-specific transition matrices.
+- [ ] Test controllability of bigrams conditional on regime and in aggregate.
+
+### PB2: Latent Gaussian Categorical Model
+
+Implement when we want another property-based baseline.
+
+- [ ] Accept `alphabet` and `marginal`.
+- [ ] Implement marginal calibration through latent means or thresholds.
+- [ ] Start with a practical FFT/circulant approximation rather than exact Cholesky for
+      large `n`.
+- [ ] Test marginal control by simulation.
+
+---
+
+## Documentation Tasks
+
+- [x] Update README to describe controllability:
+      alphabet, marginal, bigram/trigram, and LRD mechanism separately.
+- [x] Add a capability matrix to docs:
+      method versus alphabet/marginal/bigram/trigram/LRD parameter controls.
+- [x] Explain that strong LRD-parameter validation is deferred to external estimator
+      packages.
+- [x] Add examples for custom alphabets and non-uniform marginals.
+- [ ] Add examples of what cannot be controlled by each method.
+
+---
+
+## Release Hygiene
+
+- [ ] Keep CHANGELOG.md updated as new controls, tests, and methods are added.
+- [ ] Ensure CI runs fast unit tests.
+- [ ] Decide whether longer simulation studies run manually, nightly, or behind an
+      environment variable.
+- [ ] Revisit version number after the TODO and docs match the implemented package.

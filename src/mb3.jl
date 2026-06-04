@@ -61,14 +61,19 @@ struct FSS{A, R <: AbstractVector{<:Real}} <: LRDGenerator
                         x_min::Float64) where {A, R <: AbstractVector{<:Real}}
         (1.0 < alpha < 2.0) ||
             throw(ArgumentError("alpha must be in (1, 2), got $alpha"))
+        validate_alphabet(alphabet)
         k = length(alphabet)
         length(rates) == k ||
             throw(ArgumentError(
                 "rates length $(length(rates)) ≠ alphabet length $k"))
+        all(isfinite, rates) ||
+            throw(ArgumentError("rates must contain only finite values"))
         all(>(0), rates) ||
-            throw(ArgumentError("all rates must be positive"))
+            throw(ArgumentError("rates must be positive"))
         x_min > 0 ||
             throw(ArgumentError("x_min must be positive, got $x_min"))
+        isfinite(x_min) ||
+            throw(ArgumentError("x_min must be finite, got $x_min"))
         new{A, R}(alpha, alphabet, rates, x_min)
     end
 end
@@ -76,7 +81,7 @@ end
 function FSS(alpha::Real, alphabet;
              rates::AbstractVector{<:Real} = fill(1.0, length(alphabet)),
              x_min::Real = 1.0)
-    r = Float64.(rates)
+    r = validate_positive_vector(rates, "rates")
     FSS{typeof(alphabet), typeof(r)}(Float64(alpha), alphabet, r, Float64(x_min))
 end
 
@@ -99,20 +104,27 @@ function generate(g::FSS, n::Int; rng::AbstractRNG = Random.default_rng())
     n ≥ 1 || throw(ArgumentError("n must be ≥ 1, got $n"))
     k = length(g.alphabet)
 
+    dist = Pareto(g.alpha, g.x_min)
+
     # Initialise per-symbol clocks with one draw each
-    times  = [_pareto_sample(rng, g.alpha, g.x_min) / g.rates[i] for i in 1:k]
+    times  = [rand(rng, dist) / g.rates[i] for i in 1:k]
     result = Vector{eltype(g.alphabet)}(undef, n)
 
     @inbounds for t in 1:n
         idx        = argmin(times)
         result[t]  = g.alphabet[idx]
-        times[idx] += _pareto_sample(rng, g.alpha, g.x_min) / g.rates[idx]
+        times[idx] += rand(rng, dist) / g.rates[idx]
     end
 
     return result
 end
 
-# Inverse-CDF Pareto draw: τ = x_min · U^{−1/α},  U ~ Uniform(0,1).
+"""
+    _pareto_sample(rng, alpha, x_min) -> Float64
+
+Draw from a Pareto distribution with shape `alpha` and scale `x_min` using
+Distributions.jl.
+"""
 @inline function _pareto_sample(rng::AbstractRNG, alpha::Float64, x_min::Float64)
-    return x_min * rand(rng)^(-1 / alpha)
+    return rand(rng, Pareto(alpha, x_min))
 end

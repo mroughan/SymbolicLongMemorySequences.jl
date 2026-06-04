@@ -28,18 +28,22 @@ module S5
 
 using FFTW: ifft
 using Dates: today
+using Distributions: Pareto
 using Random
-using Statistics: mean, std, quantile
+using Statistics: mean, std
 import IncCSV
 
 export LRDGenerator, generate, save_sequence
 export SpectralFGN, LAMP, FSS
+export target_marginal, empirical_marginal, empirical_bigram, empirical_trigram
+export bin_counts, total_variation, rowwise_total_variation
 
 include("interface.jl")
 include("utils.jl")
 include("pb1.jl")
 include("mb1.jl")
 include("mb3.jl")
+include("controls.jl")
 include("io.jl")
 
 end # module S5
