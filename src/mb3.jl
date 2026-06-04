@@ -56,22 +56,28 @@ struct FSS{A, R <: AbstractVector{<:Real}} <: LRDGenerator
     alphabet :: A
     rates    :: R
     x_min    :: Float64
+
+    function FSS{A, R}(alpha::Float64, alphabet::A, rates::R,
+                        x_min::Float64) where {A, R <: AbstractVector{<:Real}}
+        (1.0 < alpha < 2.0) ||
+            throw(ArgumentError("alpha must be in (1, 2), got $alpha"))
+        k = length(alphabet)
+        length(rates) == k ||
+            throw(ArgumentError(
+                "rates length $(length(rates)) ≠ alphabet length $k"))
+        all(>(0), rates) ||
+            throw(ArgumentError("all rates must be positive"))
+        x_min > 0 ||
+            throw(ArgumentError("x_min must be positive, got $x_min"))
+        new{A, R}(alpha, alphabet, rates, x_min)
+    end
 end
 
 function FSS(alpha::Real, alphabet;
              rates::AbstractVector{<:Real} = fill(1.0, length(alphabet)),
              x_min::Real = 1.0)
-    (1.0 < alpha < 2.0) ||
-        throw(ArgumentError("alpha must be in (1, 2), got $alpha"))
-    k = length(alphabet)
-    length(rates) == k ||
-        throw(ArgumentError(
-            "rates length $(length(rates)) ≠ alphabet length $k"))
-    all(>(0), rates) ||
-        throw(ArgumentError("all rates must be positive"))
-    x_min > 0 ||
-        throw(ArgumentError("x_min must be positive, got $x_min"))
-    FSS(Float64(alpha), alphabet, Float64.(rates), Float64(x_min))
+    r = Float64.(rates)
+    FSS{typeof(alphabet), typeof(r)}(Float64(alpha), alphabet, r, Float64(x_min))
 end
 
 function Base.show(io::IO, g::FSS)

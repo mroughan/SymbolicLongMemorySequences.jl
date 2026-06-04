@@ -5,7 +5,7 @@ import IncCSV
     @testset "SpectralFGN round-trip" begin
         mktempdir() do dir
             g    = SpectralFGN(0.8, [:a, :b, :c])
-            seq  = generate(g, 200; rng = rng)
+            seq  = generate(g, 200; rng = MersenneTwister(1))
             path = joinpath(dir, "pb1.inc")
 
             ret = save_sequence(path, seq, g)
@@ -34,7 +34,7 @@ import IncCSV
     @testset "LAMP round-trip" begin
         mktempdir() do dir
             g    = LAMP(0.5, [:x, :y]; d = 50)
-            seq  = generate(g, 80; rng = rng)
+            seq  = generate(g, 80; rng = MersenneTwister(2))
             path = joinpath(dir, "mb1.inc")
             save_sequence(path, seq, g)
 
@@ -53,7 +53,7 @@ import IncCSV
     @testset "FSS round-trip" begin
         mktempdir() do dir
             g    = FSS(1.5, [:p, :q, :r])
-            seq  = generate(g, 60; rng = rng)
+            seq  = generate(g, 60; rng = MersenneTwister(3))
             path = joinpath(dir, "mb3.inc")
             save_sequence(path, seq, g)
 
@@ -72,13 +72,12 @@ import IncCSV
     @testset "sequence content preserved" begin
         mktempdir() do dir
             g    = FSS(1.4, [:a, :b])
-            seq  = generate(g, 50; rng = rng)
+            seq  = generate(g, 50; rng = MersenneTwister(400))
             path = joinpath(dir, "content.inc")
             save_sequence(path, seq, g)
 
-            rows  = collect(IncCSV.table(IncCSV.readinc(path)))
-            syms  = [r.symbol for r in rows]
-            # Every written symbol should match the original sequence
+            rows = collect(IncCSV.table(IncCSV.readinc(path)))
+            syms = [r.symbol for r in rows]
             @test all(syms[i] == string(seq[i]) for i in 1:50)
         end
     end

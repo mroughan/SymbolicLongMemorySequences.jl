@@ -46,25 +46,30 @@ struct LAMP{A, M <: AbstractVector{<:Real}} <: LRDGenerator
     marginal :: M
     d        :: Int
     weights  :: Vector{Float64}
+
+    function LAMP{A, M}(beta::Float64, alphabet::A, marginal::M,
+                         d::Int, weights::Vector{Float64}) where {A, M <: AbstractVector{<:Real}}
+        (0.0 < beta < 1.0) ||
+            throw(ArgumentError("beta must be in (0, 1), got $beta"))
+        k = length(alphabet)
+        length(marginal) == k ||
+            throw(ArgumentError(
+                "marginal length $(length(marginal)) ≠ alphabet length $k"))
+        isapprox(sum(marginal), 1.0; atol = 1e-8) ||
+            throw(ArgumentError("marginal must sum to 1, got $(sum(marginal))"))
+        d ≥ 1 || throw(ArgumentError("d must be ≥ 1, got $d"))
+        new{A, M}(beta, alphabet, marginal, d, weights)
+    end
 end
 
 function LAMP(beta::Real, alphabet,
               marginal::AbstractVector{<:Real} =
                   fill(1.0 / length(alphabet), length(alphabet));
               d::Int = 1000)
-    (0.0 < beta < 1.0) ||
-        throw(ArgumentError("beta must be in (0, 1), got $beta"))
-    k = length(alphabet)
-    length(marginal) == k ||
-        throw(ArgumentError(
-            "marginal length $(length(marginal)) ≠ alphabet length $k"))
-    isapprox(sum(marginal), 1.0; atol = 1e-8) ||
-        throw(ArgumentError("marginal must sum to 1, got $(sum(marginal))"))
-    d ≥ 1 || throw(ArgumentError("d must be ≥ 1, got $d"))
-
-    w  = [j^(-(1.0 + beta)) for j in 1:d]
+    m  = Float64.(marginal)
+    w  = [j^(-(1.0 + Float64(beta))) for j in 1:d]
     w ./= sum(w)
-    LAMP(Float64(beta), alphabet, Float64.(marginal), d, w)
+    LAMP{typeof(alphabet), typeof(m)}(Float64(beta), alphabet, m, d, w)
 end
 
 function Base.show(io::IO, g::LAMP)

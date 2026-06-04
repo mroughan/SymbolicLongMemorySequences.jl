@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(julia --project=. --compiled-modules=no -e ' *)",
+      "Bash(julia --project=. -e ' *)"
+    ]
+  }
+}

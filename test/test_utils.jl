@@ -1,6 +1,8 @@
 @testset "Utils" begin
 
-    @testset "quantize_to_symbols — output type and length" begin
+    rng = MersenneTwister(42)   # local to this testset
+
+    @testset "quantize_to_symbols — type and length" begin
         x    = randn(rng, 1_000)
         syms = S5.quantize_to_symbols(x, [:a, :b, :c], [1/3, 1/3, 1/3])
         @test length(syms) == 1_000
@@ -33,8 +35,8 @@
 
     @testset "quantize_to_symbols — argument errors" begin
         x = randn(rng, 100)
-        @test_throws ArgumentError S5.quantize_to_symbols(x, [:a,:b], [0.4, 0.4])   # sum ≠ 1
-        @test_throws ArgumentError S5.quantize_to_symbols(x, [:a,:b,:c], [0.5, 0.5]) # length mismatch
+        @test_throws ArgumentError S5.quantize_to_symbols(x, [:a,:b], [0.4, 0.4])
+        @test_throws ArgumentError S5.quantize_to_symbols(x, [:a,:b,:c], [0.5, 0.5])
     end
 
     @testset "weighted_sample — distribution" begin
@@ -49,10 +51,9 @@
         @test isapprox(counts[3] / N, 0.3; atol = 0.01)
     end
 
-    @testset "weighted_sample — single nonzero weight" begin
-        # Weight concentrated on index 2; should almost always return 2
+    @testset "weighted_sample — near-degenerate" begin
         cnt = sum(S5.weighted_sample(rng, [1e-15, 1.0, 1e-15]) for _ in 1:1_000)
-        @test cnt / 1_000 ≈ 2  atol = 0.01
+        @test isapprox(cnt / 1_000, 2.0; atol = 0.01)
     end
 
 end
