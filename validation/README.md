@@ -16,8 +16,12 @@ julia --project=. validation/marginal_control.jl
 ```
 
 The script prints aggregate total-variation and maximum absolute marginal errors for
-`SpectralFGN`, `LAMP`, and `FSS` across a small grid of sequence lengths, alphabet
-sizes, and marginal distributions.
+`SpectralFGN`, `LGCM`, `LAMP`, `OnOffMarkov`, and `FSS` across a small grid of
+sequence lengths, alphabet sizes, and marginal distributions.
+
+`LGCM` is more expensive than the other methods because it calibrates latent
+offsets over an `n × k` matrix. Increase `replicates`, `ns`, or
+`calibration_iters` manually when running longer studies.
 
 Keep generated data out of the repository unless a result table is intentionally being
 tracked.

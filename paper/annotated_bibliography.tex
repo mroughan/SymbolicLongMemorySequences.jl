@@ -1,0 +1,132 @@
+\subsection{Long-Range Dependence and Self-Similarity}
+
+\paragraph{Leland, Taqqu, Willinger, and Wilson (1994).}
+\emph{On the self-similar nature of Ethernet traffic.}
+This paper is one of the central empirical starting points for modern LRD
+network-traffic modelling. It showed that packet traffic could retain burstiness
+across aggregation scales, motivating models beyond Poisson and short-memory
+Markov assumptions. For S5.jl it supplies the broader methodological lesson:
+synthetic test data should reproduce large-scale structure, not just local
+statistics.
+
+\paragraph{Pipiras and Taqqu (2017).}
+\emph{Long-Range Dependence and Self-Similarity.}
+This monograph provides the mathematical background tying together covariance
+decay, spectral poles, self-similarity, and the Hurst parameter. It is the main
+reference for the parameter relationships used throughout the package, including
+the links between spectral exponent, ACF decay exponent, and Hurst parameter.
+
+\paragraph{Beran (1994).}
+\emph{Statistics for Long-Memory Processes.}
+Beran's text is a core statistical reference for inference and modelling in
+long-memory time series. Although S5.jl is not an estimator package, the book
+helps frame why estimator benchmarking needs synthetic sequences with known
+parameters and known violations of short-memory assumptions.
+
+\paragraph{Taqqu, Teverovsky, and Willinger (1995).}
+\emph{Estimators for long-range dependence: an empirical study.}
+This empirical comparison of LRD estimators motivates the separation between
+S5.jl and a future estimator package. The paper demonstrates that estimator
+performance depends heavily on model class, sample size, and diagnostics, which
+is why S5.jl focuses first on controllable generators.
+
+\subsection{Numerical LRD Synthesis}
+
+\paragraph{Paxson (1997).}
+\emph{Fast, approximate synthesis of fractional Gaussian noise for generating
+self-similar network traffic.}
+This is the direct ancestor of S5.jl's PB1 method. It gives a practical spectral
+construction of fGn, trading exact covariance matching for speed. In S5.jl the
+numerical fGn sequence is mapped to symbols by rank binning, preserving a simple
+path from target Hurst parameter to categorical output.
+
+\paragraph{Dieker (2004).}
+\emph{Simulation of fractional Brownian motion.}
+Dieker's thesis surveys exact and approximate fBm/fGn simulation methods,
+including circulant embedding. It provides the natural next reference for
+improving PB1 if exact covariance control becomes more important than speed.
+
+\paragraph{Roughan, Veitch, and Abry (2001).}
+\emph{Real-time estimation of the parameters of long-range dependence.}
+This work is important for the wavelet perspective behind the planned PB3
+generator. Wavelet methods are attractive because they align naturally with
+multi-scale structure and may provide a bridge from LRD synthesis to local
+state-machine control.
+
+\subsection{Point Processes and Heavy-Tailed Models}
+
+\paragraph{Garrett and Willinger (1994).}
+\emph{Analysis, modeling, and generation of self-similar VBR video traffic.}
+This paper is a classic example of generating self-similar traffic from
+heavy-tailed source behaviour. It motivates MB2's heavy-tailed regime-sojourn
+construction, where long periods in a regime create large-scale dependence while
+the within-regime Markov chain controls local symbol structure.
+
+\paragraph{Lowen and Teich (1995).}
+\emph{Estimation and simulation of fractal stochastic point processes.}
+Lowen and Teich provide the point-process foundation for fractal renewal and
+shot-noise constructions. Their work informs MB3's view of each symbol stream as
+an independent heavy-tailed arrival process.
+
+\paragraph{Ryu and Lowen (1998).}
+\emph{Point process models for self-similar network traffic, with applications.}
+This paper develops point-process models that connect heavy-tailed mechanisms to
+self-similar traffic. It is a key bridge between network-traffic synthesis and
+the symbolic FSS construction used in S5.jl.
+
+\paragraph{Roughan, Yates, and Veitch (1999).}
+\emph{The mystery of the missing scales: pitfalls in the use of fractal renewal
+processes to simulate LRD processes.}
+This paper is a warning label for naive heavy-tailed simulation. It shows that
+FRP constructions can fail to express LRD over the intended scale range. S5.jl's
+validation scripts and TODO list retain this as an explicit design concern for
+FSS and On/Off methods.
+
+\subsection{Symbolic and Categorical Models}
+
+\paragraph{Gal, Chen, and Ghahramani (2015).}
+\emph{Latent Gaussian processes for distribution estimation of multivariate
+categorical data.}
+This work motivates PB2. The central idea is to represent categorical outcomes
+through latent Gaussian variables and an argmax transformation. S5.jl adapts that
+idea to long-memory latent fGn streams and adds finite-sample offset calibration
+for marginal control.
+
+\paragraph{Kumar, Raghu, Sarlos, and Tomkins (2017).}
+\emph{Linear additive Markov processes.}
+This paper motivates MB1. LAMP models make transition probabilities additive in
+past observations, allowing long-range memory to be encoded through a decay
+kernel over history. S5.jl implements a finite-depth version with a marginal
+innovation term.
+
+\paragraph{Singh, Greenberg, and Klakow (2016).}
+\emph{The custom decay language model for long range dependencies.}
+This language-modelling paper is closely related to LAMP in spirit: it uses a
+custom decay over historical context to model long-range dependencies in text.
+It supports the idea that symbolic sequences need memory mechanisms distinct
+from ordinary short-context Markov models.
+
+\paragraph{Carpio and Daley (2007).}
+\emph{Long-range dependence of Markov chains in discrete time on countable state
+space.}
+This paper is important because it frames LRD for Markov chains through counting
+and recurrence-time behaviour. It helps justify the use of count-process and
+return-time definitions for non-numerical sequences where ordinary numerical ACF
+methods are not directly applicable.
+
+\subsection{Machine Learning Motivation}
+
+\paragraph{Belletti, Beutel, Jain, and Chi (2018).}
+\emph{Factorized recurrent neural architectures for longer range dependence.}
+This paper motivates the project from the machine-learning side by showing that
+common recurrent architectures struggle with long-range dependence. It helps
+explain why synthetic NN-LRD data is useful for stress-testing learning
+algorithms.
+
+\paragraph{Belletti, Chen, and Chi (2019).}
+\emph{Quantifying long range dependence in language and user behavior to improve
+RNNs.}
+This paper is one of the direct motivations for studying LRD in language and
+human behavioural sequences. It connects empirical LRD measurement to model
+design, reinforcing S5.jl's role as a controllable data source for later
+estimator and learning experiments.

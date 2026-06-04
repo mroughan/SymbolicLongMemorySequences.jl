@@ -231,3 +231,51 @@ function rowwise_total_variation(observed::AbstractMatrix{<:Real},
     return [total_variation(@view(observed[i, :]), @view(target[i, :]))
             for i in axes(observed, 1)]
 end
+
+"""
+    validate_transition_matrix(P, name = "transition_matrix") -> Matrix{Float64}
+
+Convert `P` to a dense `Matrix{Float64}` and check that it is square,
+finite, non-negative, non-empty, and row-stochastic.
+"""
+function validate_transition_matrix(P::AbstractMatrix{<:Real},
+                                    name::AbstractString = "transition_matrix")
+    size(P, 1) == size(P, 2) ||
+        throw(ArgumentError("$name must be square, got size $(size(P))"))
+    size(P, 1) ≥ 1 || throw(ArgumentError("$name must be non-empty"))
+    Q = Matrix{Float64}(P)
+    all(isfinite, Q) || throw(ArgumentError("$name must contain only finite values"))
+    all(≥(0), Q) || throw(ArgumentError("$name must be non-negative"))
+    for i in axes(Q, 1)
+        rowsum = sum(@view Q[i, :])
+        isapprox(rowsum, 1.0; atol = 1e-8) ||
+            throw(ArgumentError("$name row $i must sum to 1, got $rowsum"))
+    end
+    return Q
+end
+
+"""
+    stationary_distribution(P; maxiter = 10_000, tol = 1e-12) -> Vector{Float64}
+
+Return a stationary distribution for a row-stochastic transition matrix using
+power iteration.
+"""
+function stationary_distribution(P::AbstractMatrix{<:Real};
+                                 maxiter::Int = 10_000,
+                                 tol::Float64 = 1e-12)
+    Q = validate_transition_matrix(P, "P")
+    k = size(Q, 1)
+    π = fill(1.0 / k, k)
+    next = similar(π)
+    for _ in 1:maxiter
+        mul!(next, transpose(Q), π)
+        s = sum(next)
+        s > 0 || throw(ArgumentError("stationary iteration reached zero mass"))
+        next ./= s
+        if norm(next .- π, 1) ≤ tol
+            return copy(next)
+        end
+        π, next = next, π
+    end
+    return copy(π)
+end

@@ -22,13 +22,24 @@ rng = StableRNG(42)
 g1 = SpectralFGN(0.8, [:a, :b, :c], [0.2, 0.3, 0.5])
 seq1 = generate(g1, 10_000; rng)
 
-# Model-based: Linear-Additive Markov Process
-g2 = LAMP(0.5, [:a, :b, :c], [0.2, 0.3, 0.5]; d = 500, epsilon = 0.02)
+# Property-based: latent Gaussian categorical model
+g2 = LGCM(0.8, [:a, :b, :c], [0.2, 0.3, 0.5])
 seq2 = generate(g2, 10_000; rng)
 
-# Model-based: Fractal Symbol Sequence  (H = (3-α)/2 = 0.75)
-g3 = FSS(1.5, [:a, :b, :c]; rates = [2.0, 3.0, 5.0])
+# Model-based: Linear-Additive Markov Process
+g3 = LAMP(0.5, [:a, :b, :c], [0.2, 0.3, 0.5]; d = 500, epsilon = 0.02)
 seq3 = generate(g3, 10_000; rng)
+
+# Model-based: heavy-tailed regime-switching Markov chain
+P1 = [0.9 0.1; 0.2 0.8]
+P2 = [0.3 0.7; 0.6 0.4]
+Q = [0.2 0.8; 0.8 0.2]
+g4 = OnOffMarkov(1.5, [:a, :b], [P1, P2], Q)
+seq4 = generate(g4, 10_000; rng)
+
+# Model-based: Fractal Symbol Sequence  (H = (3-α)/2 = 0.75)
+g5 = FSS(1.5, [:a, :b, :c]; rates = [2.0, 3.0, 5.0])
+seq5 = generate(g5, 10_000; rng)
 
 empirical_marginal(seq1, g1.alphabet)
 
@@ -41,7 +52,9 @@ save_sequence("seq_pb1.inc", seq1, g1)
 | ID  | Type          | LRD mechanism                          | Short-range control        | Complexity      |
 |-----|---------------|----------------------------------------|----------------------------|-----------------|
 | PB1 | `SpectralFGN` | Spectral $1/f^\alpha$ shaping          | Poor (set by quantization) | $O(n \log n)$  |
+| PB2 | `LGCM`        | Latent fGn streams + argmax            | Offset-calibrated marginals | $O(n \cdot k \cdot I)$ |
 | MB1 | `LAMP`        | Power-law history weights              | Weight tensor              | $O(n \cdot d)$ |
+| MB2 | `OnOffMarkov` | Heavy-tailed regime sojourns           | Per-regime Markov matrices | $O(n \cdot k)$ |
 | MB3 | `FSS`         | Pareto renewal process per symbol      | Poor (independent streams) | $O(n \cdot k)$ |
 
 ### LRD parameters
@@ -51,7 +64,9 @@ All three generators expose a Hurst parameter $H \in (1/2, 1)$:
 | Type          | Input parameter  | Relationship to $H$    |
 |---------------|------------------|------------------------|
 | `SpectralFGN` | `H`              | direct                 |
+| `LGCM`        | `H`              | direct                 |
 | `LAMP`        | `beta` ($\beta$) | $H = (2 - \beta) / 2$ |
+| `OnOffMarkov` | `alpha` ($\alpha$) | nominal $H = (3 - \alpha) / 2$ |
 | `FSS`         | `alpha` ($\alpha$) | $H = (3 - \alpha) / 2$ |
 
 ## Controllability
@@ -62,7 +77,9 @@ entries are rejected because they make empirical frequency tables ambiguous.
 | Type | Marginal control | Local structure control |
 |------|------------------|-------------------------|
 | `SpectralFGN` | direct `marginal`; rank binning gives integer counts as close as possible to target | none |
+| `LGCM` | direct `marginal`; calibrated latent offsets | none |
 | `LAMP` | direct `marginal` mixed through `epsilon`; larger `epsilon` improves marginal control | history-weighted dependence, not arbitrary bigrams |
+| `OnOffMarkov` | aggregate stationary marginal implied by regimes | per-regime bigram matrices |
 | `FSS` | asymptotic `rates / sum(rates)` | none |
 
 Reproducible controllability studies live in `validation/`, for example:

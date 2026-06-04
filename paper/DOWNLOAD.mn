@@ -1,0 +1,112 @@
+# Manual Download List
+
+Place downloaded PDFs in `paper/references/` using the suggested filenames below.
+Items are listed here because they have not yet been downloaded into the repository.
+
+- [ ] `leland_taqqu_willinger_wilson_1994_ethernet_self_similar.pdf`
+  - Leland, W. E., Taqqu, M. S., Willinger, W., & Wilson, D. V. (1994).
+    "On the self-similar nature of Ethernet traffic."
+    IEEE/ACM Transactions on Networking, 2(1), 1-15.
+  - DOI/search: `10.1109/90.282603`
+
+- [ ] `pipiras_taqqu_2017_lrd_self_similarity.pdf`
+  - Pipiras, V., & Taqqu, M. S. (2017).
+    Long-Range Dependence and Self-Similarity.
+    Cambridge University Press.
+  - DOI/search: Cambridge University Press book page.
+
+- [ ] `beran_1994_statistics_long_memory_processes.pdf`
+  - Beran, J. (1994).
+    Statistics for Long-Memory Processes.
+    Chapman and Hall.
+  - DOI/search: book title and author.
+
+- [ ] `taqqu_teverovsky_willinger_1995_estimators_lrd.pdf`
+  - Taqqu, M., Teverovsky, V., & Willinger, W. (1995).
+    "Estimators for long-range dependence: an empirical study."
+    Fractals, 3(4), 785-798.
+  - DOI/search: `10.1142/S0218348X95000692`
+
+- [ ] `paxson_1997_fast_fgn.pdf`
+  - Paxson, V. (1997).
+    "Fast, approximate synthesis of fractional Gaussian noise for generating
+    self-similar network traffic."
+    Computer Communication Review, 27, 5-18.
+  - Source/search: Vern Paxson papers page; article title.
+
+- [ ] `dieker_2004_simulation_fbm.pdf`
+  - Dieker, T. (2004).
+    Simulation of fractional Brownian motion.
+    PhD thesis, University of Twente.
+  - Source/search: `ad3217 fbm thesis pdf dieker`.
+
+- [ ] `roughan_veitch_abry_2001_lrd_parameters.pdf`
+  - Roughan, M., Veitch, D., & Abry, P. (2001).
+    "Real-time estimation of the parameters of long-range dependence."
+    IEEE/ACM Transactions on Networking, 8(4), 467-478.
+  - DOI/search: article title.
+
+- [ ] `garrett_willinger_1994_self_similar_vbr_video.pdf`
+  - Garrett, M., & Willinger, W. (1994).
+    "Analysis, modeling, and generation of self-similar VBR video traffic."
+    Proceedings of ACM SIGCOMM.
+  - DOI/search: article title.
+
+- [ ] `lowen_teich_1995_fractal_point_processes.pdf`
+  - Lowen, S. B., & Teich, M. C. (1995).
+    "Estimation and simulation of fractal stochastic point processes."
+    Fractals, 3(1), 183-210.
+  - DOI/search: article title.
+
+- [ ] `ryu_lowen_1998_point_process_self_similar_network_traffic.pdf`
+  - Ryu, B., & Lowen, S. (1998).
+    "Point process models for self-similar network traffic, with applications."
+    Stochastic Models, 14(3), 735-761.
+  - DOI/search: article title.
+
+- [ ] `roughan_yates_veitch_1999_missing_scales.pdf`
+  - Roughan, M., Yates, J., & Veitch, D. (1999).
+    "The mystery of the missing scales: Pitfalls in the use of fractal renewal
+    processes to simulate LRD processes."
+    Applications of Heavy Tailed Distributions in Economics, Engineering and
+    Statistics.
+  - Source/search: title and authors.
+
+- [ ] `gal_chen_ghahramani_2015_latent_gaussian_categorical.pdf`
+  - Gal, Y., Chen, Y., & Ghahramani, Z. (2015).
+    "Latent Gaussian processes for distribution estimation of multivariate
+    categorical data."
+    ICML.
+  - Source/search: PMLR or ICML 2015 title page.
+
+- [ ] `kumar_raghu_sarlos_tomkins_2017_lamp.pdf`
+  - Kumar, R., Raghu, M., Sarlos, T., & Tomkins, A. (2017).
+    "Linear additive Markov processes."
+    WWW '17, 411-419.
+  - DOI/search: `10.1145/3038912.3052606`
+
+- [ ] `singh_greenberg_klakow_2016_custom_decay_language_model.pdf`
+  - Singh, M., Greenberg, C., & Klakow, D. (2016).
+    "The custom decay language model for long range dependencies."
+    Text, Speech, and Dialogue, 343-351.
+  - DOI/search: title and authors.
+
+- [ ] `carpio_daley_2007_lrd_markov_chains.pdf`
+  - Carpio, K. J. E., & Daley, D. J. (2007).
+    "Long-range dependence of Markov chains in discrete time on countable state
+    space."
+    Journal of Applied Probability, 44(4), 1047-1055.
+  - DOI/search: article title.
+
+- [ ] `belletti_beutel_jain_chi_2018_factorized_rnn_lrd.pdf`
+  - Belletti, F., Beutel, A., Jain, S., & Chi, E. (2018).
+    "Factorized recurrent neural architectures for longer range dependence."
+    AISTATS, PMLR.
+  - Source/search: PMLR AISTATS 2018 title page.
+
+- [ ] `belletti_chen_chi_2019_quantifying_lrd_language.pdf`
+  - Belletti, F., Chen, M., & Chi, E. H. (2019).
+    "Quantifying long range dependence in language and user behavior to improve
+    RNNs."
+    KDD '19.
+  - DOI/search: `10.1145/3292500.333094 long range dependence language user behavior`

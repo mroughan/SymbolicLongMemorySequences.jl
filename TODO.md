@@ -19,7 +19,9 @@ Implemented:
 
 - [x] Common generator interface: `generate(g, n; rng)`.
 - [x] `SpectralFGN` (PB1): spectral fGn plus quantization.
+- [x] `LGCM` (PB2): latent Gaussian categorical model.
 - [x] `LAMP` (MB1): Linear-Additive Markov Process.
+- [x] `OnOffMarkov` (MB2): heavy-tailed regime-switching Markov chain.
 - [x] `FSS` (MB3): Fractal Symbol Sequence via independent Pareto renewal streams.
 - [x] INC output with provenance metadata via `save_sequence`.
 - [x] Basic unit tests for construction, output length/type, alphabet membership, and
@@ -30,9 +32,7 @@ Implemented:
 
 Not yet implemented:
 
-- [ ] PB2: Latent Gaussian Categorical Model.
 - [ ] PB3: Wavelet-cascade driving a Markov state machine.
-- [ ] MB2: Heavy-tailed On/Off doubly-stochastic Markov chain.
 - [ ] Benchmark suite.
 - [x] Initial simulation studies of marginal controllability.
 - [ ] Expanded simulation studies of local-structure controllability.
@@ -59,7 +59,9 @@ All generators should accept an ordered `alphabet` collection and emit elements 
 that collection with the same element type.
 
 - [x] `SpectralFGN(H, alphabet, marginal = uniform)`.
+- [x] `LGCM(H, alphabet, marginal = uniform)`.
 - [x] `LAMP(beta, alphabet, marginal = uniform; d = 1000)`.
+- [x] `OnOffMarkov(alpha, alphabet, transition_matrices, switching_matrix; L_min = 1.0)`.
 - [x] `FSS(alpha, alphabet; rates = ones(k), x_min = 1.0)`.
 - [x] Add explicit tests for non-symbol alphabets:
       `Char`, `String`, `Int`, `Symbol`, and small custom immutable values if useful.
@@ -76,9 +78,13 @@ Current behavior:
 
 - `SpectralFGN`: accepts `marginal`; rank binning gives integer finite-sample counts
   as close as possible to the requested marginal.
+- `LGCM`: accepts `marginal`; latent offsets are calibrated on the generated sample
+  to approximate the target marginal.
 - `LAMP`: accepts `marginal` and mixes it into the history-based probabilities through
   `epsilon`. Larger `epsilon` improves finite-sample marginal control but weakens
   history dependence.
+- `OnOffMarkov`: aggregate marginal is implied by regime occupancy and per-regime
+  stationary distributions.
 - `FSS`: accepts `rates`; target marginal is `rates / sum(rates)` asymptotically.
 
 Tasks:
@@ -117,11 +123,14 @@ Current capability:
 
 - `SpectralFGN`: no direct bigram/trigram control. Local structure is induced by the
   latent Gaussian path and quantization thresholds.
+- `LGCM`: no direct bigram/trigram control. Local structure is induced by the latent
+  fGn streams and argmax mapping.
 - `LAMP`: controls dependence through history weights, but not arbitrary user-specified
   bigram/trigram probabilities in the current implementation.
+- `OnOffMarkov`: direct per-regime bigram control through Markov transition matrices.
 - `FSS`: no direct bigram/trigram control because symbol streams are independent.
-- `PB3` and `MB2`: natural places to support Markov transition matrices and therefore
-  bigram control.
+- `PB3`: natural next place to support Markov transition matrices driven by a latent
+  wavelet cascade.
 
 Tasks:
 
@@ -135,7 +144,7 @@ Tasks:
       row-wise transition error for Markov matrices.
 - [ ] Add capability docs: each generator should state whether it supports
       `:marginal`, `:bigram`, `:trigram`, and how strongly.
-- [ ] Use these specs first in `MB2`, then in `PB3`.
+- [x] Use these specs first in `MB2`, then in `PB3`.
 
 ---
 
@@ -192,15 +201,15 @@ Useful metrics:
 
 ### MB2: Heavy-Tailed On/Off Doubly-Stochastic Markov Chain
 
-Implement next if the goal is controllable local structure.
+Implemented as `OnOffMarkov`.
 
-- [ ] Define constructor accepting `alphabet`, `transition_matrices`,
+- [x] Define constructor accepting `alphabet`, `transition_matrices`,
       `switching_matrix`, `alpha`, and `L_min`.
-- [ ] Validate Markov matrices: square, row-stochastic, non-negative, matching alphabet.
-- [ ] Generate regime sojourns from a heavy-tailed distribution.
-- [ ] Emit symbols from the active regime's transition matrix.
-- [ ] Test marginal and bigram control within regimes and in aggregate.
-- [ ] Document that aggregate marginals depend on regime occupancy and transition
+- [x] Validate Markov matrices: square, row-stochastic, non-negative, matching alphabet.
+- [x] Generate regime sojourns from a heavy-tailed distribution.
+- [x] Emit symbols from the active regime's transition matrix.
+- [x] Test marginal and bigram control within regimes and in aggregate.
+- [x] Document that aggregate marginals depend on regime occupancy and transition
       stationary distributions.
 
 ### PB3: Wavelet-Cascade Driving a Markov State Machine
@@ -215,13 +224,13 @@ Implement after the local-structure specification is settled.
 
 ### PB2: Latent Gaussian Categorical Model
 
-Implement when we want another property-based baseline.
+Implemented as `LGCM`.
 
-- [ ] Accept `alphabet` and `marginal`.
-- [ ] Implement marginal calibration through latent means or thresholds.
-- [ ] Start with a practical FFT/circulant approximation rather than exact Cholesky for
+- [x] Accept `alphabet` and `marginal`.
+- [x] Implement marginal calibration through latent means or thresholds.
+- [x] Start with a practical FFT/circulant approximation rather than exact Cholesky for
       large `n`.
-- [ ] Test marginal control by simulation.
+- [x] Test marginal control by simulation.
 
 ---
 
@@ -234,7 +243,7 @@ Implement when we want another property-based baseline.
 - [x] Explain that strong LRD-parameter validation is deferred to external estimator
       packages.
 - [x] Add examples for custom alphabets and non-uniform marginals.
-- [ ] Add examples of what cannot be controlled by each method.
+- [x] Add examples of what cannot be controlled by each method.
 
 ---
 

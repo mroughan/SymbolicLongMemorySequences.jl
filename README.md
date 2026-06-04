@@ -33,7 +33,7 @@ media), yet almost all synthesis tools target numerical data. S5.jl fills that g
 
 ## Implemented Methods
 
-Three synthesis methods are currently implemented. Additional methods from the
+Five synthesis methods are currently implemented. Additional methods from the
 grant proposal remain on the roadmap.
 
 ### Property-Based Methods
@@ -44,7 +44,7 @@ The LRD property is inherited from the numerical layer.
 | ID | Name | Status | LRD mechanism | Short-range control | Complexity | Novel? |
 |----|------|--------|---------------|---------------------|------------|--------|
 | PB1 | Spectral fGn + quantization | Implemented | Spectral $1/f^\alpha$ shaping | Poor (set by quantization) | $O(n \log n)$ | No |
-| PB2 | Latent Gaussian categorical (LGCM) | Planned | fGn covariance matrix | Via per-symbol mean offsets | $O(n^2)$ / approx | No |
+| PB2 | Latent Gaussian categorical (LGCM) | Implemented | fGn streams + argmax | Via calibrated offsets | $O(n k I)$ | No |
 | PB3 | Wavelet-cascade + Markov state machine | Planned | Wavelet coefficient cascade | Markov transition matrices | $O(n)$ | Partial |
 
 **PB1 — Spectral fGn + quantization.**
@@ -56,12 +56,11 @@ finite sample. This is the simplest approach and serves as the primary validatio
 baseline.
 
 **PB2 — Latent Gaussian categorical model (LGCM).**
-A vector of $k$ correlated Gaussian processes (one per symbol) shares a common fGn
-covariance structure. At each time step the symbol is the argmax of the latent vector.
-Per-symbol means shift the marginal probability of each symbol independently of $H$.
-Monotone transformations of Gaussian LRD sequences preserve the sign of long-range
-correlations, so LRD transfers to the categorical output. Extends Gal, Chen &
-Ghahramani (ICML 2015).
+A vector of $k$ latent fGn streams is generated, one stream per symbol. At each time
+step the symbol is the argmax of the latent vector plus calibrated per-symbol offsets.
+The offsets shift marginal probabilities while the latent streams carry the LRD
+structure. This is a practical finite-sample approximation to the latent Gaussian
+categorical model of Gal, Chen & Ghahramani (ICML 2015).
 
 **PB3 — Wavelet-cascade driving a Markov state machine.**
 A latent LRD intensity signal is generated via the wavelet synthesis method of Roughan,
@@ -79,7 +78,7 @@ These produce LRD through the stochastic model itself rather than via mapping.
 | ID | Name | Status | LRD mechanism | Short-range control | Complexity | Novel? |
 |----|------|--------|---------------|---------------------|------------|--------|
 | MB1 | Linear-Additive Markov Process (LAMP) | Implemented | Power-law history weights | Weight tensor | $O(n \cdot d)$ | No |
-| MB2 | Heavy-tailed On/Off doubly-stochastic Markov chain | Planned | Pareto regime sojourn times | Per-regime Markov chains | $O(n)$ | No |
+| MB2 | Heavy-tailed On/Off doubly-stochastic Markov chain | Implemented | Pareto regime sojourn times | Per-regime Markov chains | $O(n \cdot k)$ | No |
 | MB3 | Fractal Symbol Sequence (FSS) via FRP/FSNP | Implemented | Fractal point process inter-arrivals | Poor (independent streams) | $O(n \cdot k)$ | **Yes** |
 
 **MB1 — Linear-Additive Markov Process (LAMP).**
@@ -125,7 +124,9 @@ alphabet)` provide lightweight checks for simulated data.
 | Type | Alphabet | Marginal control | Bigram/trigram control |
 |------|----------|------------------|------------------------|
 | `SpectralFGN` | explicit `alphabet` | direct `marginal`; rank binning gives near-exact finite-sample counts | no direct control |
+| `LGCM` | explicit `alphabet` | direct `marginal`; calibrated latent offsets | no direct control |
 | `LAMP` | explicit `alphabet` | direct `marginal` mixed through `epsilon`; larger `epsilon` improves marginal control but weakens history dependence | no arbitrary target table |
+| `OnOffMarkov` | explicit `alphabet` | aggregate stationary marginal implied by regimes | direct per-regime bigram matrices |
 | `FSS` | explicit `alphabet` | `rates / sum(rates)` asymptotically | no direct control |
 
 Reproducible simulation studies live in `validation/`. For example:
@@ -146,7 +147,8 @@ Methods are implemented in the following order:
 1. **PB1** — fastest baseline; easiest to validate against known $H$ via spectral estimators.
 2. **MB1** — cleanest finite-state theory; already demonstrated on text corpora.
 3. **MB3** — novel FSS contribution that distinguishes this project scientifically.
-4. **PB2, PB3, MB2** — follow once test infrastructure is established.
+4. **PB2 and MB2** — additional marginal and local-structure controls.
+5. **PB3** — follows once wavelet-regime coupling is specified.
 
 ---
 

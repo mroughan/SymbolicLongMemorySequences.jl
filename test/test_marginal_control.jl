@@ -5,7 +5,7 @@ include(joinpath(@__DIR__, "..", "validation", "marginal_control.jl"))
     @testset "validation script returns aggregate rows" begin
         rows = run_marginal_control(; ns = (500,), ks = (2,),
                                     replicates = 3, seed = 101)
-        @test length(rows) == 9
+        @test length(rows) == 15
         @test all(row.tv_mean ≥ 0 for row in rows)
         @test all(row.maxabs_mean ≥ 0 for row in rows)
     end

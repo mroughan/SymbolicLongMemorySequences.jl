@@ -45,15 +45,17 @@ function marginal_errors(generator_factory, n::Int, p::Vector{Float64},
     )
 end
 
-function run_marginal_control(; ns = (1_000, 10_000),
+function run_marginal_control(; ns = (1_000, 5_000),
                                 ks = (2, 8, 32),
-                                replicates = 50,
+                                replicates = 20,
                                 seed = 20260604)
     rows = NamedTuple[]
 
     factories = [
         ("SpectralFGN", (p, alphabet) -> SpectralFGN(0.8, alphabet, p)),
+        ("LGCM", (p, alphabet) -> LGCM(0.8, alphabet, p; calibration_iters = 8)),
         ("LAMP", (p, alphabet) -> LAMP(0.5, alphabet, p; d = 200, epsilon = 0.05)),
+        ("OnOffMarkov", (p, alphabet) -> _iid_onoff_markov(p, alphabet)),
         ("FSS", (p, alphabet) -> FSS(1.5, alphabet; rates = p)),
     ]
 
@@ -76,6 +78,13 @@ function run_marginal_control(; ns = (1_000, 10_000),
     end
 
     return rows
+end
+
+function _iid_onoff_markov(p, alphabet)
+    k = length(alphabet)
+    P = repeat(reshape(p, 1, k), k, 1)
+    Q = [0.2 0.8; 0.8 0.2]
+    OnOffMarkov(1.5, alphabet, [P, P], Q)
 end
 
 function print_results(rows)

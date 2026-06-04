@@ -64,6 +64,33 @@ function _build_metadata(gen::SpectralFGN, n::Int, created::String)
     )
 end
 
+function _build_metadata(gen::LGCM, n::Int, created::String)
+    k   = length(gen.alphabet)
+    alp = join(string.(gen.alphabet), ",")
+    mar = join(string.(round.(gen.marginal; digits = 8)), ",")
+    Dict(
+        "title"     => "S5.jl synthetic LRD symbol sequence",
+        "package"   => "S5",
+        "version"   => string(pkgversion(@__MODULE__)),
+        "created"   => created,
+        "n"         => n,
+        "generator" => "LGCM",
+        "method"    => "PB2",
+        "generator_params" => Dict(
+            "H"                 => string(gen.H),
+            "alphabet_size"     => k,
+            "alphabet"          => alp,
+            "marginal"          => mar,
+            "calibration_iters" => gen.calibration_iters,
+            "calibration_rate"  => string(gen.calibration_rate),
+        ),
+        "columns" => Dict(
+            "index"  => "time index (1-based)",
+            "symbol" => "generated symbol from the alphabet",
+        ),
+    )
+end
+
 function _build_metadata(gen::LAMP, n::Int, created::String)
     k   = length(gen.alphabet)
     alp = join(string.(gen.alphabet), ",")
@@ -82,6 +109,34 @@ function _build_metadata(gen::LAMP, n::Int, created::String)
             "alphabet_size" => k,
             "alphabet"      => alp,
             "marginal"      => mar,
+        ),
+        "columns" => Dict(
+            "index"  => "time index (1-based)",
+            "symbol" => "generated symbol from the alphabet",
+        ),
+    )
+end
+
+function _build_metadata(gen::OnOffMarkov, n::Int, created::String)
+    k   = length(gen.alphabet)
+    R   = length(gen.transition_matrices)
+    alp = join(string.(gen.alphabet), ",")
+    H   = (3 - gen.alpha) / 2
+    Dict(
+        "title"     => "S5.jl synthetic LRD symbol sequence",
+        "package"   => "S5",
+        "version"   => string(pkgversion(@__MODULE__)),
+        "created"   => created,
+        "n"         => n,
+        "generator" => "OnOffMarkov",
+        "method"    => "MB2",
+        "generator_params" => Dict(
+            "alpha"         => string(gen.alpha),
+            "H_nominal"     => string(round(H; digits = 8)),
+            "L_min"         => string(gen.L_min),
+            "alphabet_size" => k,
+            "alphabet"      => alp,
+            "n_regimes"     => R,
         ),
         "columns" => Dict(
             "index"  => "time index (1-based)",

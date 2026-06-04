@@ -18,12 +18,14 @@ save_sequence
 
 ```@docs
 SpectralFGN
+LGCM
 ```
 
 ## Model-based generators
 
 ```@docs
 LAMP
+OnOffMarkov
 FSS
 ```
 
@@ -37,6 +39,8 @@ empirical_trigram
 bin_counts
 total_variation
 rowwise_total_variation
+validate_transition_matrix
+stationary_distribution
 S5.quantize_to_symbols
 S5._fgn_spectral
 S5._pareto_sample

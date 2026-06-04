@@ -50,6 +50,47 @@ import IncCSV
         end
     end
 
+    @testset "LGCM round-trip" begin
+        mktempdir() do dir
+            g    = LGCM(0.8, [:a, :b], [0.25, 0.75]; calibration_iters = 4)
+            seq  = generate(g, 80; rng = StableRNG(23))
+            path = joinpath(dir, "pb2.inc")
+            save_sequence(path, seq, g)
+
+            inc  = IncCSV.readinc(path)
+            meta = IncCSV.metadata(inc)
+            @test meta["generator"] == "LGCM"
+            @test meta["method"]    == "PB2"
+            @test meta["n"]         == 80
+
+            gp = meta["generator_params"]
+            @test gp["H"] == "0.8"
+            @test gp["calibration_iters"] == 4
+        end
+    end
+
+    @testset "OnOffMarkov round-trip" begin
+        mktempdir() do dir
+            P1 = [0.9 0.1; 0.2 0.8]
+            P2 = [0.3 0.7; 0.6 0.4]
+            Q = [0.2 0.8; 0.8 0.2]
+            g    = OnOffMarkov(1.5, [:a, :b], [P1, P2], Q)
+            seq  = generate(g, 80; rng = StableRNG(24))
+            path = joinpath(dir, "mb2.inc")
+            save_sequence(path, seq, g)
+
+            inc  = IncCSV.readinc(path)
+            meta = IncCSV.metadata(inc)
+            @test meta["generator"] == "OnOffMarkov"
+            @test meta["method"]    == "MB2"
+            @test meta["n"]         == 80
+
+            gp = meta["generator_params"]
+            @test gp["alpha"] == "1.5"
+            @test gp["n_regimes"] == 2
+        end
+    end
+
     @testset "FSS round-trip" begin
         mktempdir() do dir
             g    = FSS(1.5, [:p, :q, :r])
