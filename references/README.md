@@ -16,6 +16,7 @@ Downloaded on: 2026-06-11
 | `jet-readme.md` | <https://github.com/aviatesk/JET.jl> | JET package-analysis use and Julia-version constraints | MIT-licensed project documentation; retained for project reference |
 | `documenter-hosting.md` | <https://github.com/JuliaDocs/Documenter.jl/blob/master/docs/src/man/hosting.md> | Documenter GitHub Actions deployment guidance | MIT-licensed project documentation; retained for project reference |
 | `codecov-action-readme.md` | <https://github.com/codecov/codecov-action> | Codecov GitHub Action setup | Apache-2.0-licensed project documentation; retained for project reference |
+| `longmemory-api-notes.md` | <https://github.com/everval/LongMemory.jl> | API conventions for validation comparisons with LongMemory.jl | MIT-licensed project; retained as provenance notes for validation adapters |
 
 The canonical online sources remain authoritative. Refresh snapshots deliberately,
 record the new download date, and review resulting changes.

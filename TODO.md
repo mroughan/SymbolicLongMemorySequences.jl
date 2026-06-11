@@ -33,9 +33,12 @@ Implemented:
 
 Not yet implemented:
 
-- [ ] Benchmark suite.
+- [x] Benchmark suite scaffolded under `benchmark/` with a separate
+      BenchmarkTools.jl environment and an opt-in large-run flag.
 - [x] Initial simulation studies of marginal controllability.
 - [x] Expanded simulation studies of local-structure controllability.
+- [x] Formalized LRD visual diagnostic transformations and added a
+      LongMemory.jl comparison validation script.
 
 Deferred to a future estimation package:
 
@@ -141,6 +144,9 @@ Tasks:
       `MarkovSpec(alphabet, transition_matrix)` for bigram control.
 - [ ] Consider a higher-order form for trigram control, e.g. a sparse mapping from
       `(previous_symbol_1, previous_symbol_2)` to next-symbol probabilities.
+      The code now exposes `LocalStructureSpec` and `local_structure_order` so a
+      future trigram specification has a clear extension point without implying
+      current trigram control.
 - [x] Add validation helpers for local structure:
       empirical unigram, bigram, and trigram frequency tables;
       total variation distance from a target table;
@@ -173,8 +179,14 @@ Keep these separate from fast unit tests if runtime becomes large.
 - [x] `test/marginal_control.jl`: repeated simulations for each implemented generator.
 - [x] `test/local_structure.jl`: empirical bigram/trigram tools, initially tested on
       simple iid and Markov baselines.
-- [ ] Decide whether large simulations belong under `test/` with `@testset`, under
-      `validation/`, or under `examples/` as reproducible scripts.
+- [x] Decide whether large simulations belong under `test/` with `@testset`, under
+      `validation/`, or under `examples/` as reproducible scripts. The policy is
+      documented in `VALIDATION_POLICY.md`: fast contract checks belong in `test/`;
+      larger empirical studies belong in `validation/` and run manually or behind
+      explicit flags.
+- [x] Move visual LRD diagnostic mechanics into reusable validation code, including
+      centered one-hot transformations and LongMemory.jl-compatible autocovariance,
+      autocorrelation, and periodogram conventions.
 - [ ] Write summary tables to `data/validation/results/` only if those outputs are
       intended to be tracked.
 
@@ -191,11 +203,12 @@ Useful metrics:
 
 ## Priority 3: Benchmarks
 
-- [ ] Add `benchmark/benchmarks.jl` using BenchmarkTools.jl.
-- [ ] Measure wall time and allocations for `n in (10^4, 10^5, 10^6)`.
-- [ ] Include alphabet sizes `k in (2, 8, 64)` where feasible.
-- [ ] Include skewed marginal/rate settings.
-- [ ] Report complexity-relevant parameters:
+- [x] Add `benchmark/benchmarks.jl` using BenchmarkTools.jl.
+- [x] Measure wall time and allocations for `n in (10^4, 10^5)`, with
+      `10^6` available through `S5_BENCHMARK_LARGE=true`.
+- [x] Include alphabet sizes `k in (2, 8, 64)` where feasible.
+- [x] Include skewed marginal/rate settings.
+- [x] Report complexity-relevant parameters:
       `d` for `LAMP`, `k` for `FSS`, FFT length for `SpectralFGN`.
 
 ---
@@ -252,9 +265,10 @@ Implemented as `LGCM`.
 
 ## Release Hygiene
 
-- [ ] Keep CHANGELOG.md updated as new controls, tests, and methods are added.
+- [x] Keep CHANGELOG.md updated as new controls, tests, and methods are added.
 - [x] Ensure CI runs fast unit tests.
 - [x] Ensure Documenter CI resolves unregistered dependencies from a clean checkout.
-- [ ] Decide whether longer simulation studies run manually, nightly, or behind an
-      environment variable.
+- [x] Decide whether longer simulation studies run manually, nightly, or behind an
+      environment variable. `VALIDATION_POLICY.md` keeps the main path fast and
+      reserves larger studies for manual or flag-controlled runs.
 - [ ] Revisit version number after the TODO and docs match the implemented package.

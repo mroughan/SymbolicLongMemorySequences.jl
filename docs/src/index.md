@@ -109,6 +109,12 @@ aggregate observed bigrams depend on regime differences and switching behavior. 
 all regimes use the same `MarkovSpec`, that common transition matrix is also the
 unambiguous aggregate target.
 
+`MarkovSpec` is the current concrete `LocalStructureSpec`, and
+`local_structure_order(spec)` returns its order. This is the intended extension
+point for future sparse higher-order controls. S5.jl currently provides
+`empirical_trigram` for diagnostics, but it does not expose a trigram-control
+specification.
+
 For `WaveletMarkov` and `OnOffMarkov`, one-hot symbol diagnostics need regimes
 with different stationary symbol distributions. If each regime has the same
 stationary marginal, the latent regime process can be long-memory while the
@@ -120,11 +126,35 @@ Reproducible controllability studies live in `validation/`, for example:
 julia --project=. validation/marginal_control.jl
 julia --project=. validation/local_structure.jl
 julia --project=. validation/lrd_method_diagnostics.jl
+julia --project=validation validation/longmemory_comparison.jl
 ```
 
 The LRD diagnostic script writes generated sequences and summary tables as INC
 files under `validation/results/lrd_diagnostics/`, and writes log-log SVG plots of
 log-binned one-hot autocorrelation and power-spectrum summaries.
+The symbolic-to-numeric transformation is formalized in
+`validation/lrd_symbol_diagnostics.jl`: each symbol is converted to a centered
+one-hot indicator series before autocorrelation, autocovariance, or periodogram
+calculations. `validation/longmemory_comparison.jl` compares those helpers with
+LongMemory.jl's `autocovariance`, `autocorrelation`, and `periodogram`, including
+the documented lag-zero and angular-frequency adaptations.
+
+See `VALIDATION_POLICY.md` for the validation tiers. Fast tests run through the
+package test suite. Longer validation studies and larger benchmark runs are manual
+or flag-controlled.
+
+## Benchmarking
+
+Benchmarking uses a separate environment under `benchmark/`:
+
+```julia
+julia --project=benchmark benchmark/benchmarks.jl
+S5_BENCHMARK_LARGE=true julia --project=benchmark benchmark/benchmarks.jl
+```
+
+The default suite covers all implemented generators across moderate sequence
+lengths and alphabet sizes. The large suite adds longer runs and should be treated
+as machine-specific performance evidence rather than a correctness test.
 
 ## Motivations
 

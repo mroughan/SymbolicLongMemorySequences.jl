@@ -19,7 +19,8 @@
     for filename in ("julia-style-guide.html", "julia-performance-tips.html",
                      "semantic-versioning.html", "keep-a-changelog.html",
                      "aqua-readme.md", "jet-readme.md",
-                     "documenter-hosting.md", "codecov-action-readme.md")
+                     "documenter-hosting.md", "codecov-action-readme.md",
+                     "longmemory-api-notes.md")
         @test isfile(joinpath(root, "references", filename))
     end
 end

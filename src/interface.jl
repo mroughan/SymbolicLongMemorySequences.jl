@@ -10,6 +10,17 @@ Concrete subtypes must implement:
 abstract type LRDGenerator end
 
 """
+    LocalStructureSpec
+
+Abstract supertype for explicit local-structure specifications.
+
+`MarkovSpec` is the current concrete first-order specification. Future higher-order
+specifications, such as sparse trigram controls, should subtype
+`LocalStructureSpec` and define [`local_structure_order`](@ref).
+"""
+abstract type LocalStructureSpec end
+
+"""
     MarkovSpec(alphabet, transition_matrix)
 
 Validated first-order Markov specification over an ordered symbol alphabet.
@@ -28,7 +39,7 @@ julia> spec.transition_matrix[1, :]
  0.1
 ```
 """
-struct MarkovSpec{A}
+struct MarkovSpec{A} <: LocalStructureSpec
     alphabet          :: A
     transition_matrix :: Matrix{Float64}
 
@@ -47,6 +58,25 @@ function MarkovSpec(alphabet, transition_matrix::AbstractMatrix{<:Real})
     P = validate_transition_matrix(transition_matrix)
     MarkovSpec{typeof(alphabet)}(alphabet, P)
 end
+
+"""
+    local_structure_order(spec) -> Int
+
+Return the Markov order of a local-structure specification.
+
+`MarkovSpec` has order 1. This function is the extension point for future
+higher-order local-structure specifications; S5.jl does not currently expose a
+trigram-control specification.
+
+# Examples
+```julia
+julia> local_structure_order(MarkovSpec([:a, :b], [0.9 0.1; 0.2 0.8]))
+1
+```
+"""
+function local_structure_order end
+
+local_structure_order(::MarkovSpec) = 1
 
 function Base.show(io::IO, spec::MarkovSpec)
     print(io, "MarkovSpec{$(typeof(spec.alphabet))}(k=$(length(spec.alphabet)))")

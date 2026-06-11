@@ -12,7 +12,9 @@ LRDGenerator
 ```@docs
 generate
 save_sequence
+LocalStructureSpec
 MarkovSpec
+local_structure_order
 ControlCapabilities
 control_capabilities
 ```

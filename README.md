@@ -181,10 +181,35 @@ Reproducible simulation studies live in `validation/`. For example:
 ```julia
 julia --project=. validation/marginal_control.jl
 julia --project=. validation/lrd_method_diagnostics.jl
+julia --project=validation validation/longmemory_comparison.jl
 ```
 
 These studies test controllability of simulated data; LRD-parameter estimation is
 intended for a future separate estimator package.
+
+The LRD diagnostic transformation is formalized in
+`validation/lrd_symbol_diagnostics.jl`: symbols are converted to centered one-hot
+numeric series before autocorrelation, autocovariance, and periodogram
+calculations. The LongMemory.jl comparison script documents and tests the needed
+adaptations to LongMemory.jl's lag and frequency conventions.
+
+Validation policy is documented in `VALIDATION_POLICY.md`. The fast package test
+suite remains the main development pathway, while larger empirical studies are run
+manually or behind explicit flags such as `S5_VALIDATION_LARGE=true`.
+
+Benchmarks live in `benchmark/` and use a separate `Project.toml` with
+BenchmarkTools.jl:
+
+```julia
+julia --project=benchmark benchmark/benchmarks.jl
+S5_BENCHMARK_LARGE=true julia --project=benchmark benchmark/benchmarks.jl
+```
+
+First-order local-structure controls use `MarkovSpec`. Trigram diagnostics are
+available through `empirical_trigram`, but a concrete trigram-control
+specification is intentionally left for future work. The code now exposes
+`LocalStructureSpec` and `local_structure_order` as the extension path for that
+higher-order API.
 
 
 
@@ -206,9 +231,7 @@ intended for a future separate estimator package.
 
 ## AI Disclosure
 
-This package was developed with assistance from **Claude Sonnet 4.6** (Anthropic), an
-AI coding assistant. Claude contributed to the design of the package architecture,
-the selection and write-up of synthesis methods, and the generation of documentation
-and code. All scientific content is grounded in the references cited above and in the
-ARC Discovery Grant proposal by Roughan & Willinger (2023). Human review and direction
-was provided throughout by the project investigators.
+This package was developed with assistance from **Claude Sonnet 4.6** (Anthropic), and Codex; 
+AI coding assistants. The design goals, overall architecture, methods design were human, but 
+Claude and Codex contributed to the design of the package architecture,
+the coding itself, and some of the write-up of synthesis methods. 

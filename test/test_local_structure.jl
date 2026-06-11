@@ -11,6 +11,12 @@ include(joinpath(@__DIR__, "..", "validation", "local_structure.jl"))
         @test_throws ArgumentError cyclic_scenario(1)
     end
 
+    @testset "local structure specification pathway" begin
+        spec = MarkovSpec([:a, :b], [0.9 0.1; 0.2 0.8])
+        @test spec isa LocalStructureSpec
+        @test local_structure_order(spec) == 1
+    end
+
     @testset "validation script returns aggregate rows" begin
         rows = run_local_structure_control(; ns = (1_000,), ks = (2,),
                                            replicates = 3, seed = 505)

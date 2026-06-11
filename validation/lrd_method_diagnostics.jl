@@ -1,8 +1,9 @@
-using FFTW
 import IncCSV
 using S5
 using StableRNGs
 using Statistics
+
+include(joinpath(@__DIR__, "lrd_symbol_diagnostics.jl"))
 
 const DEFAULT_N = 100_000
 const DEFAULT_REPLICATES = 30
@@ -48,48 +49,6 @@ function observable_regime_matrices(k::Int; dominance::Real, persistence::Real)
         push!(matrices, stationary_transition_matrix(p, persistence))
     end
     return matrices
-end
-
-function nextpow2int(n::Int)
-    p = 1
-    while p < n
-        p <<= 1
-    end
-    return p
-end
-
-function indicator_diagnostics(seq, alphabet; maxlag::Int = length(seq) ÷ 2)
-    n = length(seq)
-    k = length(alphabet)
-    pad = nextpow2int(2n)
-    acf = zeros(Float64, maxlag)
-    power = zeros(Float64, n ÷ 2)
-
-    for sym in alphabet
-        x = Float64.(seq .== sym)
-        x .-= mean(x)
-        v = mean(abs2, x)
-        v == 0 && continue
-
-        padded = zeros(Float64, pad)
-        padded[1:n] .= x
-        F = fft(padded)
-        raw = real(ifft(abs2.(F)))
-        c0 = raw[1] / n
-        @inbounds for lag in 1:maxlag
-            acf[lag] += (raw[lag + 1] / (n - lag)) / c0
-        end
-
-        G = fft(x)
-        @inbounds for i in 1:(n ÷ 2)
-            power[i] += abs2(G[i + 1]) / n
-        end
-    end
-
-    acf ./= k
-    power ./= k
-    freqs = collect(1:(n ÷ 2)) ./ n
-    return acf, freqs, power
 end
 
 function logbin(x::AbstractVector{<:Real}, y::AbstractVector{<:Real};

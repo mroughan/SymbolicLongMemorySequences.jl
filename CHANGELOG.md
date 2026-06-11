@@ -24,6 +24,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - A reproducible local-structure validation study and focused tests for
   per-regime Markov specifications and aggregate bigram control.
 - README status badges for package tests, Aqua, JET, Codecov, and Documenter.
+- `LocalStructureSpec` and `local_structure_order` as the extension path for
+  future higher-order local-structure specifications.
+- `benchmark/benchmarks.jl` and `benchmark/Project.toml` for BenchmarkTools.jl
+  performance studies across implemented generators.
+- `VALIDATION_POLICY.md` describing fast tests, manual validation studies, and
+  opt-in large validation and benchmark runs.
+- Tests protecting the validation policy and benchmark infrastructure.
+- Reusable LRD symbol-diagnostic helpers for centered one-hot transformations,
+  autocorrelation, autocovariance, and periodogram conventions.
+- A `validation/longmemory_comparison.jl` script comparing S5's formalized
+  diagnostic helpers with LongMemory.jl's `autocovariance`, `autocorrelation`,
+  and `periodogram` functions.
 
 ### Changed
 - Added explicit compatibility bounds for standard-library dependencies so Aqua
