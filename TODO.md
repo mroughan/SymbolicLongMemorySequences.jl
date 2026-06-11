@@ -242,12 +242,17 @@ Implemented as `WaveletMarkov`.
 - [x] Map driver values to regimes.
 - [x] Emit via regime-specific transition matrices.
 - [x] Test controllability of bigrams conditional on regime and in aggregate.
-- [ ] Revisit the latent LRD driver. Current diagnostics suggest the pragmatic
-      Haar-style cascade does not reliably produce visible symbol-level LRD even
-      when regimes have distinct stationary marginals. A likely path is to
-      separate the regime-driver interface from the Markov emission layer, then
-      compare candidate drivers directly: spectral fGn rank-binning, a calibrated
-      wavelet synthesis, and the current Haar cascade.
+- [x] Revisit the latent LRD driver. `WaveletMarkov` now separates the latent
+      regime driver from the Markov emission layer, defaults to spectral fGn
+      rank-binning, and retains the original Haar cascade as `driver = :haar`
+      for comparison.
+- [ ] Compare PB3 spectral and Haar drivers in the full LRD diagnostics and
+      decide whether the Haar path should remain only as a validation baseline.
+- [ ] Investigate a fully calibrated wavelet synthesis driver for PB3.
+- [ ] Add a PB3 driver-layer validation that separately plots latent-driver,
+      regime-indicator, and emitted-symbol autocorrelation. Current evidence
+      suggests the legacy Haar path can be too flat, while the spectral path can
+      be damped strongly by rank-binning and Markov emission.
 
 ### MB1: Linear-Additive Markov Process
 

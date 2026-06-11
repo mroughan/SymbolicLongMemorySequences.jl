@@ -50,9 +50,9 @@ function _cases(k::Int)
     return (
         "PB1_SpectralFGN_fft=n" => SpectralFGN(0.8, alphabet, p),
         "PB2_LGCM_iters=8" => LGCM(0.8, alphabet, p; calibration_iters = 8),
-        "PB3_WaveletMarkov_regimes=2" =>
-            WaveletMarkov(0.8, alphabet, [P_iid, P_persistent]),
-        "MB1_LAMP_d=$lamp_d" => LAMP(0.5, alphabet, p; d = lamp_d, epsilon = 0.02),
+        "PB3_WaveletMarkov_spectral_regimes=2" =>
+            WaveletMarkov(0.8, alphabet, [P_iid, P_persistent]; driver = :spectral),
+        "MB1a_LAMP_d=$lamp_d" => LAMP(0.5, alphabet, p; d = lamp_d, epsilon = 0.02),
         "MB1b_DyadicLAMP_d=$dyadic_d" =>
             DyadicLAMP(0.5, alphabet, p; d = dyadic_d, epsilon = 0.02),
         "MB2_OnOffMarkov_regimes=2_Lmin=10" =>

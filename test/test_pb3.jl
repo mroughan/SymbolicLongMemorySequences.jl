@@ -10,14 +10,19 @@
         @test g.H == 0.8
         @test length(g.transition_matrices) == 2
         @test g.regime_weights == [0.4, 0.6]
+        @test g.driver == :spectral
 
-        g2 = WaveletMarkov(0.7, ["x", "y"], [P1]; cascade_depth = 4)
+        g2 = WaveletMarkov(0.7, ["x", "y"], [P1]; cascade_depth = 4,
+                           driver = :haar)
         @test g2.cascade_depth == 4
+        @test g2.driver == :haar
 
         specs = [MarkovSpec([:a, :b], P1), MarkovSpec([:a, :b], P2)]
-        g3 = WaveletMarkov(0.8, specs; regime_weights = [0.4, 0.6])
+        g3 = WaveletMarkov(0.8, specs; regime_weights = [0.4, 0.6],
+                           driver = :haar)
         @test g3.alphabet == [:a, :b]
         @test g3.transition_matrices == [P1, P2]
+        @test g3.driver == :haar
     end
 
     @testset "Constructor — argument errors" begin
@@ -29,6 +34,7 @@
         @test_throws ArgumentError WaveletMarkov(0.8, [:a, :b], [P1, P2]; regime_weights = [1.0])
         @test_throws ArgumentError WaveletMarkov(0.8, [:a, :b], [P1, P2]; regime_weights = [0.4, 0.4])
         @test_throws ArgumentError WaveletMarkov(0.8, [:a, :b], [P1, P2]; cascade_depth = -1)
+        @test_throws ArgumentError WaveletMarkov(0.8, [:a, :b], [P1, P2]; driver = :unknown)
         @test_throws ArgumentError WaveletMarkov(0.8, MarkovSpec[])
         @test_throws ArgumentError WaveletMarkov(
             0.8, [MarkovSpec([:a, :b], P1), MarkovSpec(["a", "b"], P2)])
@@ -55,6 +61,17 @@
     @testset "generate — rejects n < 2" begin
         g = WaveletMarkov(0.8, [:a, :b], [P1, P2])
         @test_throws ArgumentError generate(g, 1)
+    end
+
+    @testset "generate — both latent drivers are reproducible" begin
+        g_spectral = WaveletMarkov(0.8, [:a, :b], [P1, P2]; driver = :spectral)
+        g_haar = WaveletMarkov(0.8, [:a, :b], [P1, P2]; driver = :haar)
+
+        @test generate(g_spectral, 256; rng = StableRNG(322)) ==
+              generate(g_spectral, 256; rng = StableRNG(322))
+        @test generate(g_haar, 256; rng = StableRNG(323)) ==
+              generate(g_haar, 256; rng = StableRNG(323))
+        @test generate(g_spectral, 2; rng = StableRNG(324)) isa Vector{Symbol}
     end
 
 end

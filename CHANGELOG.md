@@ -43,6 +43,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   repeat-biased identity/dyad transition patterns over history symbols.
 - `DyadicLAMP` as MB1b, a scalable dyadic-bucket approximation to LAMP for large
   effective history depths.
+- A selectable PB3 latent-driver path for `WaveletMarkov`, with `driver =
+  :spectral` using spectral fGn rank-binning and `driver = :haar` retaining the
+  original cascade for validation comparison.
 
 ### Changed
 - Added explicit compatibility bounds for standard-library dependencies so Aqua
@@ -58,6 +61,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   artificial random pre-history.
 - Reclassified exact `LAMP` provenance as MB1a and `DyadicLAMP` provenance as
   MB1b.
+- Refreshed LRD validation tables and SVG plots for the MB1a/MB1b split, and
+  aligned benchmark labels with the same naming.
+- Clarified README complexity notation for `n`, `d`, `k`, and `I` in the
+  implemented-methods summary.
+- Changed the default `WaveletMarkov` PB3 latent driver from the original
+  Haar-style cascade to the spectral fGn rank-binning path, and recorded the
+  driver choice in INC provenance metadata.
 
 ## [0.1.0] — 2026-06-04
 

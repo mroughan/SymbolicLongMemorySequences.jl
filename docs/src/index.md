@@ -57,7 +57,7 @@ save_sequence("seq_pb1.inc", seq1, g1)
 |-----|---------------|----------------------------------------|----------------------------|-----------------|
 | PB1 | `SpectralFGN` | Spectral $1/f^\alpha$ shaping          | Poor (set by quantization) | $O(n \log n)$  |
 | PB2 | `LGCM`        | Latent fGn streams + argmax            | Offset-calibrated marginals | $O(n \cdot k \cdot I)$ |
-| PB3 | `WaveletMarkov` | Multiscale driver + Markov regimes   | Per-regime Markov matrices | $O(n \log n + n \cdot k)$ |
+| PB3 | `WaveletMarkov` | Spectral or Haar latent driver + Markov regimes | Per-regime Markov matrices | $O(n \log n + n \cdot k)$ |
 | MB1a | `LAMP`       | Exact power-law history weights        | History-weighted transition matrix | $O(n \cdot \min(d,n))$ |
 | MB1b | `DyadicLAMP` | Dyadic approximation to power-law history | History-weighted transition matrix | $O(n k \log n \log \min(d,n))$ |
 | MB2 | `OnOffMarkov` | Heavy-tailed regime sojourns           | Per-regime Markov matrices | $O(n \cdot k)$ |
@@ -122,6 +122,9 @@ For `WaveletMarkov` and `OnOffMarkov`, one-hot symbol diagnostics need regimes
 with different stationary symbol distributions. If each regime has the same
 stationary marginal, the latent regime process can be long-memory while the
 symbol-level ACF and spectrum look nearly short-memory.
+`WaveletMarkov` defaults to `driver = :spectral`, which rank-bins an approximate
+spectral fGn latent series into regimes. The legacy `driver = :haar` cascade is
+retained for comparison in validation studies.
 
 Reproducible controllability studies live in `validation/`, for example:
 

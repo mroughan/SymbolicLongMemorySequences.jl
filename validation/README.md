@@ -82,10 +82,17 @@ observable regimes whose stationary distributions are each biased toward one
 alphabet symbol (`dominance = 0.72`) with moderate within-regime Markov
 persistence (`persistence = 0.35`). The regimes are balanced overall, but the
 symbol-level one-hot ACF and spectrum can see the long-memory regime process.
-MB2 uses `L_min = 50.0` so the heavy-tailed sojourn mechanism is visible at
-`n = 100_000`. If all regimes share the same stationary marginal, these
-diagnostics can look short-memory even when the latent regime process has
-long-range structure.
+PB3 is plotted as separate Haar and spectral-driver variants so the latent-driver
+choice can be compared directly. MB2 uses `L_min = 50.0` so the heavy-tailed
+sojourn mechanism is visible at `n = 100_000`. If all regimes share the same
+stationary marginal, these diagnostics can look short-memory even when the
+latent regime process has long-range structure.
+
+The PB3 split is diagnostic evidence rather than a completed calibration claim.
+The legacy Haar cascade tends to retain a high, flat autocorrelation shelf, while
+the spectral driver can be damped strongly by the rank-binning and Markov
+emission layers. Further PB3 work should validate the latent driver, regime
+indicators, and emitted symbols separately.
 
 The script computes the one-hot symbol autocorrelation and power spectrum for each
 sequence, averages across symbols and replicates, and writes:

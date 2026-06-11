@@ -9,6 +9,13 @@
     @test contains(policy, "Future Trigram Validation")
     @test contains(policy, "centered one-hot")
 
+    readme = read(joinpath(root, "README.md"), String)
+    @test contains(readme, "Complexity notation used below")
+    @test contains(readme, "`n`: generated sequence length")
+    @test contains(readme, "`d`: configured history depth")
+    @test contains(readme, "`k`: alphabet size")
+    @test contains(readme, "`I`: number of calibration iterations")
+
     benchmark_project = read(joinpath(root, "benchmark", "Project.toml"), String)
     @test contains(benchmark_project, "BenchmarkTools")
     @test contains(benchmark_project, "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf")
@@ -22,7 +29,8 @@
     @test contains(benchmark_script, "BenchmarkGroup")
     @test contains(benchmark_script, "S5_BENCHMARK_LARGE")
     @test contains(benchmark_script, "PB1_SpectralFGN_fft=n")
-    @test contains(benchmark_script, "MB1_LAMP_d=")
+    @test contains(benchmark_script, "PB3_WaveletMarkov_spectral_regimes=2")
+    @test contains(benchmark_script, "MB1a_LAMP_d=")
     @test contains(benchmark_script, "MB1b_DyadicLAMP_d=")
     @test contains(benchmark_script, "MB3_FSS_streams=")
 

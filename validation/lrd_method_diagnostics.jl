@@ -23,7 +23,10 @@ function generator_factories(alphabet)
     return [
         ("PB1_SpectralFGN", () -> SpectralFGN(0.8, alphabet, marginal)),
         ("PB2_LGCM", () -> LGCM(0.8, alphabet, marginal; calibration_iters = 8)),
-        ("PB3_WaveletMarkov", () -> WaveletMarkov(0.8, alphabet, regime_matrices)),
+        ("PB3_WaveletMarkov_Haar", () ->
+            WaveletMarkov(0.8, alphabet, regime_matrices; driver = :haar)),
+        ("PB3_WaveletMarkov_Spectral", () ->
+            WaveletMarkov(0.8, alphabet, regime_matrices; driver = :spectral)),
         ("MB1a_LAMP", () -> LAMP(0.4, alphabet, marginal; d = 200, epsilon = 0.02)),
         ("MB1b_DyadicLAMP", () -> DyadicLAMP(0.4, alphabet, marginal;
                                              d = 100_000, epsilon = 0.02)),

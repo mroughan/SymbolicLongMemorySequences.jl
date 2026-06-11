@@ -108,6 +108,7 @@ import IncCSV
             gp = meta["generator_params"]
             @test gp["H"] == "0.8"
             @test gp["n_regimes"] == 2
+            @test gp["driver"] == "spectral"
         end
     end
 

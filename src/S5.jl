@@ -12,7 +12,7 @@ symbols for use as ground-truth test data in LRD estimation studies.
 |-----|---------------|----------------------------------------|
 | PB1 | `SpectralFGN` | Spectral fGn synthesis + quantization  |
 | PB2 | `LGCM`        | Latent Gaussian categorical model      |
-| PB3 | `WaveletMarkov` | Multiscale driver + Markov regimes    |
+| PB3 | `WaveletMarkov` | Spectral/Haar driver + Markov regimes |
 | MB1a | `LAMP`       | Linear-Additive Markov Process         |
 | MB1b | `DyadicLAMP` | Dyadic-bucket LAMP approximation       |
 | MB2 | `OnOffMarkov` | Heavy-tailed regime-switching Markov   |

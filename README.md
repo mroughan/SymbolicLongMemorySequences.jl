@@ -77,6 +77,13 @@ media), yet almost all synthesis tools target numerical data. S5.jl fills that g
 
 Methods are broadly classified into **property-based** and **model-based**. The former largely aim to synthesize LRD by starting with a numerical sequence with known LRD properties and then crafting a symbolic sequence by transforming the numerical data. The latter start from a model that has properties such as hierarchical structure or power-law distributed times to drive the sequence generation directly.
 
+Complexity notation used below:
+
+- `n`: generated sequence length;
+- `d`: configured history depth or effective memory cutoff;
+- `k`: alphabet size;
+- `I`: number of calibration iterations.
+
 ### Property-Based Methods
 
 These generate an underlying numerical LRD process and then map it to symbols.
@@ -86,7 +93,7 @@ The LRD property is inherited from the numerical layer.
 |----|------|--------|---------------|---------------------|------------|--------|
 | PB1 | Spectral fGn + quantization | Implemented | Spectral $1/f^\alpha$ shaping | Poor (set by quantization) | $O(n \log n)$ | No |
 | PB2 | Latent Gaussian categorical (LGCM) | Implemented | fGn streams + argmax | Via calibrated offsets | $O(n k I)$ | No |
-| PB3 | Wavelet-cascade + Markov state machine | Implemented | Multiscale Haar-like cascade | Markov transition matrices | $O(n \log n + n k)$ | Partial |
+| PB3 | Spectral/wavelet driver + Markov state machine | Implemented | Latent LRD driver rank-binned into regimes | Markov transition matrices | $O(n \log n + n k)$ | Partial |
 
 **PB1 — Spectral fGn + quantization.**
 Fractional Gaussian noise with Hurst parameter $H$ is synthesised using the fast,
@@ -102,12 +109,15 @@ The offsets shift marginal probabilities while the latent streams carry the LRD
 structure. This is a practical finite-sample approximation to the latent Gaussian
 categorical model of Gal, Chen & Ghahramani (ICML 2015).
 
-**PB3 — Wavelet-cascade driving a Markov state machine.**
-A latent multiscale Haar-like driver controls which Markov regime is active at each
-step. Each regime has its own symbol transition matrix, so local bigram structure can
-be prescribed while the latent cascade injects persistence across scales. This is a
-practical implementation of the wavelet/state-machine idea in Roughan, Veitch & Abry
-(2001), with the full calibrated wavelet variant left as a research extension.
+**PB3 — Latent LRD driver with a Markov state machine.**
+A latent long-memory driver controls which Markov regime is active at each step.
+Each regime has its own symbol transition matrix, so local bigram structure can be
+prescribed while the latent driver injects persistence across scales. The default
+`driver = :spectral` uses approximate spectral fGn synthesis followed by
+rank-binning into regimes; `driver = :haar` retains the original Haar-like cascade
+as a comparison path. This is a practical implementation of the wavelet/state-machine
+idea in Roughan, Veitch & Abry (2001), with a fully calibrated wavelet variant left
+as a research extension.
 
 ---
 

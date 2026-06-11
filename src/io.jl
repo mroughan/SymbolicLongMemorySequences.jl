@@ -111,6 +111,7 @@ function _build_metadata(gen::WaveletMarkov, n::Int, created::String)
             "n_regimes"      => R,
             "regime_weights" => rw,
             "cascade_depth"  => gen.cascade_depth,
+            "driver"         => string(gen.driver),
         ),
         "columns" => Dict(
             "index"  => "time index (1-based)",
