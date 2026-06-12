@@ -17,6 +17,7 @@ function target_marginal(g::OnOffMarkov)
     return p
 end
 target_marginal(g::FSS) = Float64.(g.rates) ./ sum(g.rates)
+target_marginal(g::HawkesSymbol) = Float64.(g.baseline) ./ sum(g.baseline)
 
 control_capabilities(::SpectralFGN) =
     ControlCapabilities(:exact, :finite_sample, :induced, :induced, :approximate)
@@ -32,3 +33,5 @@ control_capabilities(::OnOffMarkov) =
     ControlCapabilities(:exact, :implied, :per_regime, :induced, :nominal)
 control_capabilities(::FSS) =
     ControlCapabilities(:exact, :asymptotic, :induced, :induced, :nominal)
+control_capabilities(::HawkesSymbol) =
+    ControlCapabilities(:exact, :implied, :induced, :induced, :finite_history)

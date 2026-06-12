@@ -20,9 +20,9 @@ julia --project=. validation/marginal_control.jl
 ```
 
 The script prints aggregate total-variation and maximum absolute marginal errors for
-`SpectralFGN`, `LGCM`, `WaveletMarkov`, `LAMP`, `DyadicLAMP`, `OnOffMarkov`, and
-`FSS` across a small grid of sequence lengths, alphabet sizes, and marginal
-distributions.
+`SpectralFGN`, `LGCM`, `WaveletMarkov`, `LAMP`, `DyadicLAMP`, `OnOffMarkov`,
+`FSS`, and `HawkesSymbol` across a small grid of sequence lengths, alphabet sizes,
+and marginal distributions.
 
 `LGCM` is more expensive than the other methods because it calibrates latent
 offsets over an `n × k` matrix. Increase `replicates`, `ns`, or
@@ -87,6 +87,8 @@ choice can be compared directly. MB2 uses `L_min = 50.0` so the heavy-tailed
 sojourn mechanism is visible at `n = 100_000`. If all regimes share the same
 stationary marginal, these diagnostics can look short-memory even when the
 latent regime process has long-range structure.
+MB4 (`HawkesSymbol`) uses identity excitation so recent symbols increase their
+own future intensity through the configured finite power-law history kernel.
 
 The PB3 split is diagnostic evidence rather than a completed calibration claim.
 The legacy Haar cascade tends to retain a high, flat autocorrelation shelf, while
@@ -111,8 +113,8 @@ The SVG plots include vertical dashed interpretation limits. The red line marks
 the finite-sample lag limit `n / 10`, chosen so autocorrelation estimates are not
 interpreted deep into the range where too few overlapping pairs remain. On power
 spectrum plots this same scale is shown as frequency `10 / n`. Methods with an
-explicit internal memory limit may add a second dashed line; for example, `LAMP`
-and `DyadicLAMP` mark their configured history depth `d`.
+explicit internal memory limit may add a second dashed line; for example, `LAMP`,
+`DyadicLAMP`, and `HawkesSymbol` mark their configured history depth `d`.
 Autocorrelation and power-spectrum plots also include gray dashed nominal
 power-law reference lines, anchored at the first positive plotted value. The ACF
 reference has slope `lag^(-beta)`, while the spectral-density reference has the

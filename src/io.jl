@@ -234,3 +234,35 @@ function _build_metadata(gen::FSS, n::Int, created::String)
         ),
     )
 end
+
+function _build_metadata(gen::HawkesSymbol, n::Int, created::String)
+    k = length(gen.alphabet)
+    alp = join(string.(gen.alphabet), ",")
+    base = join(string.(round.(gen.baseline; digits = 8)), ",")
+    E = join((join(string.(round.(gen.excitation[i, :]; digits = 8)), ",")
+              for i in axes(gen.excitation, 1)), ";")
+    Dict(
+        "title"     => "S5.jl synthetic LRD symbol sequence",
+        "package"   => "S5",
+        "version"   => string(pkgversion(@__MODULE__)),
+        "created"   => created,
+        "n"         => n,
+        "generator" => "HawkesSymbol",
+        "method"    => "MB4",
+        "generator_params" => Dict(
+            "beta"          => string(gen.beta),
+            "d"             => gen.d,
+            "c"             => string(gen.c),
+            "alphabet_size" => k,
+            "alphabet"      => alp,
+            "baseline"      => base,
+            "excitation"    => E,
+            "kernel"        => "normalized power law",
+            "time_model"    => "discrete",
+        ),
+        "columns" => Dict(
+            "index"  => "time index (1-based)",
+            "symbol" => "generated symbol from the alphabet",
+        ),
+    )
+end

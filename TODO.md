@@ -21,6 +21,7 @@ Implemented:
 - [x] `DyadicLAMP` (MB1b): scalable dyadic-bucket LAMP approximation.
 - [x] `OnOffMarkov` (MB2): heavy-tailed regime-switching Markov chain.
 - [x] `FSS` (MB3): Fractal Symbol Sequence via independent Pareto renewal streams.
+- [x] `HawkesSymbol` (MB4): finite-history Hawkes-style self-exciting symbol process.
 - [x] INC output with provenance metadata via `save_sequence`.
 - [x] Basic unit tests for construction, output length/type, alphabet membership, and
       simple marginal checks.
@@ -65,6 +66,7 @@ that collection with the same element type.
 - [x] `DyadicLAMP(beta, alphabet, marginal = uniform; d = 1_000_000)`.
 - [x] `OnOffMarkov(alpha, alphabet, transition_matrices, switching_matrix; L_min = 1.0)`.
 - [x] `FSS(alpha, alphabet; rates = ones(k), x_min = 1.0)`.
+- [x] `HawkesSymbol(beta, alphabet; baseline = ones(k), excitation = I, d = 1000)`.
 - [x] Add explicit tests for non-symbol alphabets:
       `Char`, `String`, `Int`, `Symbol`, and small custom immutable values if useful.
 - [x] Decide whether duplicate alphabet entries should be rejected.
@@ -92,6 +94,8 @@ Current behavior:
 - `OnOffMarkov`: aggregate marginal is implied by regime occupancy and per-regime
   stationary distributions.
 - `FSS`: accepts `rates`; target marginal is `rates / sum(rates)` asymptotically.
+- `HawkesSymbol`: accepts `baseline`; `target_marginal` reports the normalized
+  baseline, but realized marginals are implied by excitation and finite history.
 
 Tasks:
 
@@ -139,6 +143,8 @@ Current capability:
   same history-weighted transition mechanism.
 - `OnOffMarkov`: direct per-regime bigram control through Markov transition matrices.
 - `FSS`: no direct bigram/trigram control because symbol streams are independent.
+- `HawkesSymbol`: local and long-context structure are induced by the excitation
+  matrix and power-law history kernel, not by arbitrary target bigram/trigram tables.
 
 Tasks:
 
@@ -214,7 +220,7 @@ Useful metrics:
 - [x] Include alphabet sizes `k in (2, 8, 64)` where feasible.
 - [x] Include skewed marginal/rate settings.
 - [x] Report complexity-relevant parameters:
-      `d` for `LAMP`, `k` for `FSS`, FFT length for `SpectralFGN`.
+      `d` for `LAMP` and `HawkesSymbol`, `k` for `FSS`, FFT length for `SpectralFGN`.
 
 ---
 

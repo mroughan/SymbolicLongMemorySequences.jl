@@ -17,6 +17,7 @@ symbols for use as ground-truth test data in LRD estimation studies.
 | MB1b | `DyadicLAMP` | Dyadic-bucket LAMP approximation       |
 | MB2 | `OnOffMarkov` | Heavy-tailed regime-switching Markov   |
 | MB3 | `FSS`         | Fractal Symbol Sequence via FRP/FSNP   |
+| MB4 | `HawkesSymbol` | Power-law self-exciting symbol process |
 
 # Common interface
 
@@ -38,6 +39,7 @@ export LRDGenerator, generate, save_sequence
 export LocalStructureSpec, MarkovSpec, local_structure_order
 export ControlCapabilities, control_capabilities
 export SpectralFGN, LGCM, WaveletMarkov, LAMP, DyadicLAMP, OnOffMarkov, FSS
+export HawkesSymbol
 export lamp_repeat_transition
 export target_marginal, empirical_marginal, empirical_bigram, empirical_trigram
 export bin_counts, total_variation, rowwise_total_variation
@@ -51,6 +53,7 @@ include("pb3.jl")
 include("mb1.jl")
 include("mb2.jl")
 include("mb3.jl")
+include("mb4.jl")
 include("controls.jl")
 include("io.jl")
 

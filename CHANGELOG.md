@@ -71,6 +71,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added nominal exact power-law reference overlays to autocorrelation and
   power-spectrum validation SVG plots.
 - Removed the now-redundant status column from README method summary tables.
+- Extended the paper annotated bibliography with LRD surveys, numerical
+  synthesis methods, symbolic/categorical sequence references, recent language
+  and 2D self-similar-process papers, plus locally saved open PDFs and an
+  updated manual download list.
+- Added a paper `Makefile` and inlined the annotated bibliography into
+  `paper/s5_annotated_bibliography.tex` so the paper has a single LaTeX source
+  file with a meaningful filename.
+- `HawkesSymbol` as MB4, a finite-history discrete-time Hawkes-style symbolic
+  generator with power-law self/cross-excitation over observed history.
+- Focused MB4 tests, INC provenance metadata, benchmark coverage, validation
+  diagnostics, and documentation.
+- Audited manually downloaded paper references, distinguished exact, partial,
+  and alternative matches in `paper/DOWNLOAD.mn`, and corrected stale reference
+  metadata in the bibliography and README.
 
 ## [0.1.0] — 2026-06-04
 

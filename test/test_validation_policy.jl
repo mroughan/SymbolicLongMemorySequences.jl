@@ -34,6 +34,7 @@
     @test contains(benchmark_script, "MB1a_LAMP_d=")
     @test contains(benchmark_script, "MB1b_DyadicLAMP_d=")
     @test contains(benchmark_script, "MB3_FSS_streams=")
+    @test contains(benchmark_script, "MB4_HawkesSymbol_d=")
 
     validation_project = read(joinpath(root, "validation", "Project.toml"), String)
     @test contains(validation_project, "LongMemory")
@@ -47,6 +48,7 @@
     @test contains(diagnostic_script, "diagnostic_lag_limit")
     @test contains(diagnostic_script, "stroke-dasharray")
     @test contains(diagnostic_script, "intrinsic_lag_limit(g::LAMP)")
+    @test contains(diagnostic_script, "intrinsic_lag_limit(g::HawkesSymbol)")
     @test contains(diagnostic_script, "acf_power_law_reference")
     @test contains(diagnostic_script, "spectrum_power_law_reference")
     @test contains(diagnostic_script, "nominal ACF beta=")

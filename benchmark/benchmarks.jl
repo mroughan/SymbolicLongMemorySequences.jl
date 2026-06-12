@@ -58,6 +58,9 @@ function _cases(k::Int)
         "MB2_OnOffMarkov_regimes=2_Lmin=10" =>
             OnOffMarkov(1.5, alphabet, [P_iid, P_persistent], switch; L_min = 10.0),
         "MB3_FSS_streams=$k" => FSS(1.5, alphabet; rates = p),
+        "MB4_HawkesSymbol_d=$lamp_d" =>
+            HawkesSymbol(0.6, alphabet; baseline = p, excitation = P_persistent,
+                         d = lamp_d),
     )
 end
 

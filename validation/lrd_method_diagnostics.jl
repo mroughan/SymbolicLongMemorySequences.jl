@@ -2,6 +2,7 @@ import IncCSV
 using S5
 using StableRNGs
 using Statistics
+using LinearAlgebra: I
 
 include(joinpath(@__DIR__, "lrd_symbol_diagnostics.jl"))
 
@@ -32,6 +33,10 @@ function generator_factories(alphabet)
                                              d = 100_000, epsilon = 0.02)),
         ("MB2_OnOffMarkov", () -> OnOffMarkov(1.4, alphabet, regime_matrices, Q; L_min = 50.0)),
         ("MB3_FSS", () -> FSS(1.4, alphabet; rates = ones(k))),
+        ("MB4_HawkesSymbol", () -> HawkesSymbol(0.4, alphabet;
+            baseline = fill(1.0, k),
+            excitation = 6.0 .* Matrix{Float64}(I, k, k),
+            d = 20_000)),
     ]
 end
 
@@ -112,6 +117,7 @@ end
 
 intrinsic_lag_limit(g::LAMP) = g.d
 intrinsic_lag_limit(g::DyadicLAMP) = g.d
+intrinsic_lag_limit(g::HawkesSymbol) = g.d
 
 function acf_limit_annotations(g, n::Int)
     finite_limit = diagnostic_lag_limit(n)
@@ -146,6 +152,7 @@ end
 nominal_acf_decay_exponent(g::Union{SpectralFGN,LGCM,WaveletMarkov}) = 2 - 2g.H
 nominal_acf_decay_exponent(g::Union{LAMP,DyadicLAMP}) = g.beta
 nominal_acf_decay_exponent(g::Union{OnOffMarkov,FSS}) = g.alpha - 1
+nominal_acf_decay_exponent(g::HawkesSymbol) = g.beta
 
 function nominal_reference_line(x::AbstractVector{<:Real}, y::AbstractVector{<:Real};
                                 exponent::Real, label::AbstractString)
