@@ -60,6 +60,7 @@ function run_marginal_control(; ns = (1_000, 5_000),
                                                    d = 10_000, epsilon = 0.05)),
         ("OnOffMarkov", (p, alphabet) -> _iid_onoff_markov(p, alphabet)),
         ("FSS", (p, alphabet) -> FSS(1.5, alphabet; rates = p)),
+        ("HawkesSymbol", (p, alphabet) -> _baseline_hawkes_symbol(p, alphabet)),
     ]
 
     for k in ks
@@ -94,6 +95,11 @@ function _iid_onoff_markov(p, alphabet)
     P = repeat(reshape(p, 1, k), k, 1)
     Q = [0.2 0.8; 0.8 0.2]
     OnOffMarkov(1.5, alphabet, [P, P], Q)
+end
+
+function _baseline_hawkes_symbol(p, alphabet)
+    k = length(alphabet)
+    HawkesSymbol(0.6, alphabet; baseline = p, excitation = zeros(k, k), d = 200)
 end
 
 function print_results(rows)

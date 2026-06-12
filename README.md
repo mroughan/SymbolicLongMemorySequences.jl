@@ -116,7 +116,7 @@ prescribed while the latent driver injects persistence across scales. The defaul
 `driver = :spectral` uses approximate spectral fGn synthesis followed by
 rank-binning into regimes; `driver = :haar` retains the original Haar-like cascade
 as a comparison path. This is a practical implementation of the wavelet/state-machine
-idea in Roughan, Veitch & Abry (2001), with a fully calibrated wavelet variant left
+idea in Roughan, Veitch & Abry (2000), with a fully calibrated wavelet variant left
 as a research extension.
 
 ---
@@ -131,6 +131,7 @@ These produce LRD through the stochastic model itself rather than via mapping.
 | MB1b | Dyadic-bucket LAMP | Dyadic approximation to power-law history | History-weighted transition matrix | $O(n k \log n \log \min(d,n))$ | Partial |
 | MB2 | Heavy-tailed On/Off doubly-stochastic Markov chain | Pareto regime sojourn times | Per-regime Markov chains | $O(n \cdot k)$ | No |
 | MB3 | Fractal Symbol Sequence (FSS) via FRP/FSNP | Fractal point process inter-arrivals | Poor (independent streams) | $O(n \cdot k)$ | **Yes** |
+| MB4 | Hawkes-style symbolic process | Power-law self/cross-excitation over history | Excitation matrix | $O(n \cdot k \cdot \min(d,n))$ | No |
 
 **MB1a/MB1b — Linear-Additive Markov Process (LAMP).**
 Transition probabilities are a weighted sum over transition-matrix rows selected by
@@ -177,6 +178,16 @@ inter-arrival times. The known "missing scales" pitfall of naive FRP constructio
 (Roughan, Yates & Veitch 1999) is addressed by using FSNP or a corrected FRP with a
 verified scale range.
 
+**MB4 — Hawkes-style symbolic process.**
+`HawkesSymbol` is a discrete-time, finite-history analogue of Hawkes-process word
+occurrence models. Each symbol has a positive baseline intensity, and each recent
+symbol adds a power-law weighted row of an excitation matrix to the current
+intensity vector. Identity-like excitation creates bursty repeat behavior; off-
+diagonal excitation can encode cross-symbol triggering. The model is motivated by
+Ogura, Hanada, Amano & Kondo (2022), who model long-range dynamic correlations of
+word occurrences in written text with Hawkes processes. In S5.jl this is a
+symbol-sequence generator rather than a fitted continuous-time text model.
+
 ---
 
 ## Controllability
@@ -195,6 +206,7 @@ alphabet)` provide lightweight checks for simulated data.
 | `DyadicLAMP` | explicit `alphabet` | direct `marginal` mixed through `epsilon`; larger `epsilon` improves marginal control but weakens history dependence | dyadic-bucket approximation to history-weighted transition matrix |
 | `OnOffMarkov` | explicit `alphabet` | aggregate stationary marginal implied by regimes | direct per-regime bigram matrices |
 | `FSS` | explicit `alphabet` | `rates / sum(rates)` asymptotically | no direct control |
+| `HawkesSymbol` | explicit `alphabet` | baseline distribution reported, but output marginal is implied by excitation and finite history | excitation matrix induces bursty local and long-context structure |
 
 For regime-driven methods (`WaveletMarkov` and `OnOffMarkov`), symbol-level ACF
 and spectrum diagnostics only see the LRD regime process when regimes have
@@ -252,7 +264,7 @@ higher-order API.
 
 - Paxson, V. (1997). Fast, approximate synthesis of fractional Gaussian noise. *CCR* 27.
 - Dieker, T. (2004). *Simulation of fractional Brownian motion*. PhD thesis, U. Twente.
-- Roughan, M., Veitch, D., & Abry, P. (2001). Real-time estimation of LRD parameters. *IEEE/ACM ToN* 8(4).
+- Roughan, M., Veitch, D., & Abry, P. (2000). Real-time estimation of LRD parameters. *IEEE/ACM ToN* 8(4).
 - Gal, Y., Chen, Y., & Ghahramani, Z. (2015). Latent Gaussian processes for distribution estimation of multivariate categorical data. *ICML*.
 - Kumar, R., Raghu, M., Sarlos, T., & Tomkins, A. (2017). Linear additive Markov processes. *WWW '17*.
 - Singh, M., Greenberg, C., & Klakow, D. (2016). The custom decay language model. *TSD*.

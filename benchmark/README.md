@@ -22,4 +22,5 @@ Additional knobs:
 - `S5_BENCHMARK_SECONDS=<seconds>` controls the per-benchmark time budget.
 
 The benchmark labels include complexity-relevant settings such as `k`, `d` for
-`LAMP`, stream count for `FSS`, and FFT length behavior for `SpectralFGN`.
+`LAMP` and `HawkesSymbol`, stream count for `FSS`, and FFT length behavior for
+`SpectralFGN`.

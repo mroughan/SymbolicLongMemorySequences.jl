@@ -153,6 +153,26 @@ import IncCSV
         end
     end
 
+    @testset "HawkesSymbol round-trip" begin
+        mktempdir() do dir
+            g = HawkesSymbol(0.6, [:a, :b]; baseline = [1.0, 2.0], d = 40)
+            seq = generate(g, 80; rng = StableRNG(44))
+            path = joinpath(dir, "mb4.inc")
+            save_sequence(path, seq, g)
+
+            inc = IncCSV.readinc(path)
+            meta = IncCSV.metadata(inc)
+            @test meta["generator"] == "HawkesSymbol"
+            @test meta["method"] == "MB4"
+            @test meta["n"] == 80
+
+            gp = meta["generator_params"]
+            @test gp["beta"] == "0.6"
+            @test gp["d"] == 40
+            @test gp["time_model"] == "discrete"
+        end
+    end
+
     @testset "sequence content preserved" begin
         mktempdir() do dir
             g    = FSS(1.4, [:a, :b])

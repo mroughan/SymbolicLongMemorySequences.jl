@@ -1,138 +1,216 @@
-# Manual Download List
+# Download And Reference Audit
 
-Place downloaded PDFs in `paper/references/` using the suggested filenames below.
-Items are listed here because they have not yet been downloaded into the repository.
+This file tracks local reference PDFs for the paper bibliography.
 
-- [ ] `leland_taqqu_willinger_wilson_1994_ethernet_self_similar.pdf`
-  - Leland, W. E., Taqqu, M. S., Willinger, W., & Wilson, D. V. (1994).
-    "On the self-similar nature of Ethernet traffic."
-    IEEE/ACM Transactions on Networking, 2(1), 1-15.
-  - DOI/search: `10.1109/90.282603`
+- `paper/downloads/` contains manually downloaded PDFs, including some publisher
+  filenames and one book split into chapter PDFs.
+- `paper/references/` contains open PDFs downloaded during the automated
+  bibliography pass.
+- Items under "Still to find" are not yet available locally as complete PDFs.
 
-- [ ] `pipiras_taqqu_2017_lrd_self_similarity.pdf`
-  - Pipiras, V., & Taqqu, M. S. (2017).
-    Long-Range Dependence and Self-Similarity.
-    Cambridge University Press.
-  - DOI/search: Cambridge University Press book page.
+## Downloaded Or Otherwise Resolved
+
+- [x] Leland, Taqqu, Willinger, and Wilson (1994).
+  "On the self-similar nature of Ethernet traffic."
+  - Local file: `paper/downloads/90.282603.pdf`
+  - Match: exact article.
+
+- [x] Pipiras and Taqqu (2017).
+  Long-Range Dependence and Self-Similarity.
+  - Local files: `paper/downloads/pipiras_and_taqqu/*.pdf`
+  - Match: book downloaded as separate chapter/frontmatter PDFs rather than as
+    one monolithic PDF.
+
+- [x] Samorodnitsky (2006).
+  "Long range dependence."
+  - Local file: `paper/downloads/Long_Range_Dependence.pdf`
+  - Match: exact survey/preprint.
+
+- [x] Witt and Malamud (2013).
+  "Quantification of long-range persistence in geophysical time series:
+  conventional and benchmark-based improvement techniques."
+  - Local file: `paper/downloads/s10712-012-9217-8.pdf`
+  - Match: exact open-access article.
+
+- [x] Malamud and Turcotte (1999).
+  "Self-affine time series: I. generation and analyses."
+  - Local file: `paper/downloads/1-s2.0-S0065268708602939-main.pdf`
+  - Match: exact article.
+
+- [x] Paxson (1997).
+  "Fast, approximate synthesis of fractional Gaussian noise for generating
+  self-similar network traffic."
+  - Local file: `paper/downloads/269790.269792.pdf`
+  - Match: exact article.
+
+- [x] Dieker (2004).
+  Simulation of fractional Brownian motion.
+  - Local file: `paper/downloads/dieker_thesis.pdf`
+  - Match: exact thesis.
+
+- [x] Coeurjolly (2000).
+  "Simulation and identification of the fractional Brownian motion: a
+  bibliographical and comparative study."
+  - Local file: `paper/downloads/coeurjolly_simest.pdf`
+  - Match: exact paper.
+
+- [x] Wood and Chan (1994).
+  "Simulation of stationary Gaussian processes in [0,1]^d."
+  - Local file: `paper/downloads/Wood-SimulationStationaryGaussian-1994.pdf`
+  - Match: exact JSTOR PDF.
+
+- [x] Dietrich and Newsam (1997).
+  "Fast and exact simulation of stationary Gaussian processes through
+  circulant embedding of the covariance matrix."
+  - Local file: `paper/downloads/dietrich1997.pdf`
+  - Match: exact article.
+
+- [x] Craigmile (2000 technical report; alternative to the 2003 journal article).
+  "Simulating a class of stationary Gaussian processes using the Davies-Harte
+  algorithm, with application to long memory processes."
+  - Local file: `paper/downloads/trs57_algor.pdf`
+  - Match: earlier NRCSE technical report version. The 2003 Journal of Time
+    Series Analysis article is still optional if the final published version is
+    needed.
+
+- [x] Roughan, Veitch, and Abry (2000).
+  "Real-time estimation of the parameters of long-range dependence."
+  - Local files: `paper/downloads/ieee_trans_networking_2000.pdf`,
+    `paper/downloads/ieee_trans_networking_2000.ps`
+  - Match: extended version of the IEEE/ACM Transactions on Networking paper.
+  - Related supplemental file: `paper/downloads/roughan_GLOBECOM98b.pdf`
+    ("On-Line Estimation of the Parameters of Long-Range Dependence").
+
+- [x] Garrett and Willinger (1994).
+  "Analysis, modeling, and generation of self-similar VBR video traffic."
+  - Local file: `paper/downloads/garrett_willinger_190314.190339.pdf`
+  - Match: exact ACM SIGCOMM article.
+
+- [x] Lowen and Teich point-process background.
+  - Local file: `paper/downloads/lowen_teich_FRACTALS-LookInside-chaps12.pdf`
+  - Match: partial preview of Lowen and Teich's book *Fractal-Based Point
+    Processes*, not the complete 1995 Fractals article.
+  - Alternative related file: `paper/downloads/9709006v1.pdf`, Thurner, Lowen,
+    Feurstein, Heneghan, Feichtinger, and Teich, "Analysis, synthesis, and
+    estimation of fractal-rate stochastic point processes."
+
+- [x] Ryu and Lowen (1998).
+  "Point process models for self-similar network traffic, with applications."
+  - Local file:
+    `paper/downloads/Point process models for self-similar network traffic with applications.pdf`
+  - Match: exact article.
+
+- [x] Roughan, Yates, and Veitch (1999).
+  "The mystery of the missing scales: pitfalls in the use of fractal renewal
+  processes to simulate LRD processes."
+  - Local file: `paper/downloads/roughan_yates_vietch_AHTDEES.pdf`
+  - Match: exact paper; filename retains the downloaded spelling.
+
+- [x] Ogura, Hanada, Amano, and Kondo (2022).
+  "Modeling long-range dynamic correlations of words in written texts with
+  Hawkes processes."
+  - Local file: `paper/downloads/entropy-24-00858.pdf`
+  - Match: exact open-access article.
+
+## Open PDFs Already Saved In `paper/references/`
+
+- [x] Bai and Shami (2013).
+  `paper/references/bai_shami_2013_modeling_self_similar_traffic_simulation.pdf`
+- [x] Balcerek et al. (2025).
+  `paper/references/balcerek_et_al_2025_2d_fractional_brownian_motion.pdf`
+- [x] Belletti, Chen, and Chi (2019).
+  `paper/references/belletti_chen_chi_2019_quantifying_lrd_language_user_behavior.pdf`
+- [x] Colliva et al. (2014).
+  `paper/references/colliva_et_al_2014_ising_dna_lrc.pdf`
+- [x] Dębowski (2015).
+  `paper/references/debowski_2015_hilberg_exponents.pdf`
+- [x] Dębowski (2025).
+  `paper/references/debowski_2025_zipf_neural_scaling_hilberg.pdf`
+- [x] Ebeling and Pöschel (1994).
+  `paper/references/ebeling_poeschel_1994_entropy_lrc_literary_english.pdf`
+- [x] Gelbaum (2012).
+  `paper/references/gelbaum_2012_fractional_brownian_fields_manifolds.pdf`
+- [x] Gelbaum and Titus (2013).
+  `paper/references/gelbaum_titus_2013_fractional_brownian_surfaces_spectral_synthesis.pdf`
+- [x] Millán (2021).
+  `paper/references/millan_2021_generation_lrd_traffic_chaotic_maps.pdf`
+- [x] Salgado-García and Ugalde (2012).
+  `paper/references/salgado_garcia_ugalde_2012_exact_scaling_expansion_modification.pdf`
+- [x] Sørbye, Myrvoll-Nilsen, and Rue (2017).
+  `paper/references/sorbye_myrvoll_nilsen_rue_2017_approximate_fgn.pdf`
+- [x] Zeng, Cui, and Li (2025).
+  `paper/references/zeng_cui_li_2025_fractal_illusions_sentence_length.pdf`
+
+## Still To Find
 
 - [ ] `beran_1994_statistics_long_memory_processes.pdf`
-  - Beran, J. (1994).
-    Statistics for Long-Memory Processes.
-    Chapman and Hall.
+  - Beran, J. (1994). *Statistics for Long-Memory Processes*.
   - DOI/search: book title and author.
 
 - [ ] `taqqu_teverovsky_willinger_1995_estimators_lrd.pdf`
   - Taqqu, M., Teverovsky, V., & Willinger, W. (1995).
     "Estimators for long-range dependence: an empirical study."
-    Fractals, 3(4), 785-798.
   - DOI/search: `10.1142/S0218348X95000692`
-
-- [ ] `paxson_1997_fast_fgn.pdf`
-  - Paxson, V. (1997).
-    "Fast, approximate synthesis of fractional Gaussian noise for generating
-    self-similar network traffic."
-    Computer Communication Review, 27, 5-18.
-  - Source/search: Vern Paxson papers page; article title.
-
-- [ ] `dieker_2004_simulation_fbm.pdf`
-  - Dieker, T. (2004).
-    Simulation of fractional Brownian motion.
-    PhD thesis, University of Twente.
-  - Source/search: `ad3217 fbm thesis pdf dieker`.
-
-- [ ] `roughan_veitch_abry_2001_lrd_parameters.pdf`
-  - Roughan, M., Veitch, D., & Abry, P. (2001).
-    "Real-time estimation of the parameters of long-range dependence."
-    IEEE/ACM Transactions on Networking, 8(4), 467-478.
-  - DOI/search: article title.
-
-- [ ] `garrett_willinger_1994_self_similar_vbr_video.pdf`
-  - Garrett, M., & Willinger, W. (1994).
-    "Analysis, modeling, and generation of self-similar VBR video traffic."
-    Proceedings of ACM SIGCOMM.
-  - DOI/search: article title.
 
 - [ ] `lowen_teich_1995_fractal_point_processes.pdf`
   - Lowen, S. B., & Teich, M. C. (1995).
     "Estimation and simulation of fractal stochastic point processes."
-    Fractals, 3(1), 183-210.
-  - DOI/search: article title.
-
-- [ ] `ryu_lowen_1998_point_process_self_similar_network_traffic.pdf`
-  - Ryu, B., & Lowen, S. (1998).
-    "Point process models for self-similar network traffic, with applications."
-    Stochastic Models, 14(3), 735-761.
-  - DOI/search: article title.
-
-- [ ] `roughan_yates_veitch_1999_missing_scales.pdf`
-  - Roughan, M., Yates, J., & Veitch, D. (1999).
-    "The mystery of the missing scales: Pitfalls in the use of fractal renewal
-    processes to simulate LRD processes."
-    Applications of Heavy Tailed Distributions in Economics, Engineering and
-    Statistics.
-  - Source/search: title and authors.
+  - Note: only a partial related book preview and a related arXiv article are
+    currently available locally.
 
 - [ ] `gal_chen_ghahramani_2015_latent_gaussian_categorical.pdf`
   - Gal, Y., Chen, Y., & Ghahramani, Z. (2015).
     "Latent Gaussian processes for distribution estimation of multivariate
     categorical data."
-    ICML.
-  - Source/search: PMLR or ICML 2015 title page.
+
+- [ ] `li_marr_kaneko_1994_understanding_lrc_dna.pdf`
+  - Li, W., Marr, T. G., & Kaneko, K. (1994).
+    "Understanding long-range correlations in DNA sequences."
+  - Note: arXiv `chao-dyn/9403002` was found, but tested PDF endpoints returned
+    HTML rather than a PDF on 2026-06-12.
 
 - [ ] `kumar_raghu_sarlos_tomkins_2017_lamp.pdf`
   - Kumar, R., Raghu, M., Sarlos, T., & Tomkins, A. (2017).
     "Linear additive Markov processes."
-    WWW '17, 411-419.
   - DOI/search: `10.1145/3038912.3052606`
 
 - [ ] `singh_greenberg_klakow_2016_custom_decay_language_model.pdf`
   - Singh, M., Greenberg, C., & Klakow, D. (2016).
     "The custom decay language model for long range dependencies."
-    Text, Speech, and Dialogue, 343-351.
-  - DOI/search: title and authors.
 
 - [ ] `carpio_daley_2007_lrd_markov_chains.pdf`
   - Carpio, K. J. E., & Daley, D. J. (2007).
     "Long-range dependence of Markov chains in discrete time on countable state
     space."
-    Journal of Applied Probability, 44(4), 1047-1055.
-  - DOI/search: article title.
 
 - [ ] `crutchfield_feldman_2003_entropy_convergence.pdf`
   - Crutchfield, J. P., & Feldman, D. P. (2003).
     "Regularities unseen, randomness observed: Levels of entropy convergence."
-    Chaos, 13(1), 25-54.
   - DOI/search: `10.1063/1.1530990`
 
 - [ ] `bialek_nemenman_tishby_2001_predictability_complexity_learning.pdf`
   - Bialek, W., Nemenman, I., & Tishby, N. (2001).
     "Predictability, complexity, and learning."
-    Neural Computation, 13(11), 2409-2463.
-  - DOI/search: `10.1162/089976601753195969`
 
 - [ ] `belletti_beutel_jain_chi_2018_factorized_rnn_lrd.pdf`
   - Belletti, F., Beutel, A., Jain, S., & Chi, E. (2018).
     "Factorized recurrent neural architectures for longer range dependence."
-    AISTATS, PMLR.
-  - Source/search: PMLR AISTATS 2018 title page.
-
-- [ ] `belletti_chen_chi_2019_quantifying_lrd_language.pdf`
-  - Belletti, F., Chen, M., & Chi, E. H. (2019).
-    "Quantifying long range dependence in language and user behavior to improve
-    RNNs."
-    KDD '19.
-  - DOI/search: `10.1145/3292500.333094 long range dependence language user behavior`
 
 - [ ] `vaswani_et_al_2017_attention_is_all_you_need.pdf`
-  - Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L.,
-    Gomez, A. N., Kaiser, L., & Polosukhin, I. (2017).
-    "Attention is all you need."
-    NeurIPS.
-  - Source/search: NeurIPS proceedings or arXiv `1706.03762`.
+  - Vaswani, A., et al. (2017). "Attention is all you need."
 
 - [ ] `tay_et_al_2021_long_range_arena.pdf`
-  - Tay, Y., Dehghani, M., Abnar, S., Shen, Y., Bahri, D., Pham, P.,
-    Rao, J., Yang, L., Ruder, S., & Metzler, D. (2021).
-    "Long Range Arena: A benchmark for efficient transformers."
-    ICLR.
-  - Source/search: OpenReview Long Range Arena or arXiv.
+  - Tay, Y., et al. (2021). "Long Range Arena: a benchmark for efficient
+    transformers."
+
+- [ ] `wieczynski_debowski_2025_lrd_word_time_series_embeddings.pdf`
+  - Wieczyński, M., & Dębowski, Ł. (2025).
+    "Long-range dependence in word time series: the cosine correlation of
+    embeddings."
+  - Source/search: title and authors; open PDF not found during the 2026-06-12
+    bibliography pass.
+
+- [ ] `stein_2002_fast_exact_simulation_fractional_brownian_surfaces.pdf`
+  - Stein, M. L. (2002).
+    "Fast and exact simulation of fractional Brownian surfaces."
+  - DOI/search: `10.1198/106186002760264577`

@@ -45,6 +45,10 @@ seq5 = generate(g5, 10_000; rng)
 g6 = FSS(1.5, [:a, :b, :c]; rates = [2.0, 3.0, 5.0])
 seq6 = generate(g6, 10_000; rng)
 
+# Model-based: Hawkes-style self-exciting symbolic process
+g7 = HawkesSymbol(0.6, [:a, :b, :c]; d = 500)
+seq7 = generate(g7, 10_000; rng)
+
 empirical_marginal(seq1, g1.alphabet)
 
 # Save to INC format with full provenance metadata
@@ -62,6 +66,7 @@ save_sequence("seq_pb1.inc", seq1, g1)
 | MB1b | `DyadicLAMP` | Dyadic approximation to power-law history | History-weighted transition matrix | $O(n k \log n \log \min(d,n))$ |
 | MB2 | `OnOffMarkov` | Heavy-tailed regime sojourns           | Per-regime Markov matrices | $O(n \cdot k)$ |
 | MB3 | `FSS`         | Pareto renewal process per symbol      | Poor (independent streams) | $O(n \cdot k)$ |
+| MB4 | `HawkesSymbol` | Power-law self/cross-excitation       | Excitation matrix | $O(n \cdot k \cdot \min(d,n))$ |
 
 ### LRD parameters
 
@@ -77,6 +82,7 @@ tail/decay parameter with a nominal relationship to $H$:
 | `DyadicLAMP`  | `beta` ($\beta$) | finite dyadic approximation to $H = (2 - \beta) / 2$ |
 | `OnOffMarkov` | `alpha` ($\alpha$) | nominal $H = (3 - \alpha) / 2$ |
 | `FSS`         | `alpha` ($\alpha$) | $H = (3 - \alpha) / 2$ |
+| `HawkesSymbol` | `beta` ($\beta$) | finite power-law excitation kernel |
 
 ## Controllability
 
@@ -96,6 +102,7 @@ implied, asymptotic, induced, latent, and nominal behavior.
 | `DyadicLAMP` | direct `marginal` mixed through `epsilon`; larger `epsilon` improves marginal control | dyadic-bucket approximation to history-weighted transition matrix |
 | `OnOffMarkov` | aggregate stationary marginal implied by regimes | per-regime bigram matrices |
 | `FSS` | asymptotic `rates / sum(rates)` | none |
+| `HawkesSymbol` | baseline distribution reported, output marginal implied by excitation | excitation matrix |
 
 First-order local structure can be represented by a validated `MarkovSpec`:
 

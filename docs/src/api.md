@@ -34,6 +34,7 @@ LAMP
 DyadicLAMP
 OnOffMarkov
 FSS
+HawkesSymbol
 ```
 
 ## Utilities
