@@ -14,64 +14,16 @@ using S5, StableRNGs
 
 rng = StableRNG(42)
 
-# Uniform standard-case factory
-g0 = make_generator(:PB1, [:a, :b, :c]; H = 0.8, marginal = [0.2, 0.3, 0.5])
-seq0 = generate(g0, 10_000; rng)
+alphabet = [:a, :b, :c]
+g = make_generator(:PB1, alphabet; H = 0.8, marginal = [0.2, 0.3, 0.5])
+seq = generate(g, 10_000; rng)
 
 method_ids()
 method_info(:PB1).defaults
-
-# Property-based: spectral fGn + quantization
-g1 = SpectralFGN(0.8, [:a, :b, :c], [0.2, 0.3, 0.5])
-seq1 = generate(g1, 10_000; rng)
-
-# Property-based: latent Gaussian categorical model
-g2 = LGCM(0.8, [:a, :b, :c], [0.2, 0.3, 0.5])
-seq2 = generate(g2, 10_000; rng)
-
-# Property-based: multiscale driver + Markov regimes
-P1 = [0.9 0.1; 0.2 0.8]
-P2 = [0.3 0.7; 0.6 0.4]
-g3 = WaveletMarkov(0.8, [:a, :b], [P1, P2])
-seq3 = generate(g3, 10_000; rng)
-
-# Property-based: intermittent-map latent driver + quantization
-g3b = IntermittentMapSymbols(1.6, [:a, :b, :c], [0.2, 0.3, 0.5])
-seq3b = generate(g3b, 10_000; rng)
-
-# Model-based: Linear-Additive Markov Process
-g4 = LAMP(0.5, [:a, :b, :c], [0.2, 0.3, 0.5]; d = 500, epsilon = 0.02)
-seq4 = generate(g4, 10_000; rng)
-
-# Model-based: scalable dyadic-bucket LAMP approximation
-g4b = DyadicLAMP(0.5, [:a, :b, :c], [0.2, 0.3, 0.5]; d = 100_000)
-seq4b = generate(g4b, 10_000; rng)
-
-# Model-based: centered additive Markov memory function
-g4c = CalibratedAdditiveMarkov(0.5, [:a, :b, :c], [0.2, 0.3, 0.5]; d = 500)
-seq4c = generate(g4c, 10_000; rng)
-
-# Model-based: heavy-tailed regime-switching Markov chain
-Q = [0.2 0.8; 0.8 0.2]
-g5 = OnOffMarkov(1.5, [:a, :b], [P1, P2], Q)
-seq5 = generate(g5, 10_000; rng)
-
-# Model-based: Fractal Symbol Sequence  (H = (3-α)/2 = 0.75)
-g6 = FSS(1.5, [:a, :b, :c]; rates = [2.0, 3.0, 5.0])
-seq6 = generate(g6, 10_000; rng)
-
-# Model-based: Hawkes-style self-exciting symbolic process
-g7 = HawkesSymbol(0.6, [:a, :b, :c]; d = 500)
-seq7 = generate(g7, 10_000; rng)
-
-# Model-based: copy-mutate symbolic growth
-g8 = DuplicationMutation(1.5, ['A', 'C', 'G', 'T']; mutation_probability = 0.02)
-seq8 = generate(g8, 10_000; rng)
-
-empirical_marginal(seq1, g1.alphabet)
+empirical_marginal(seq, alphabet)
 
 # Save to INC format with full provenance metadata
-save_sequence("seq_pb1.inc", seq1, g1)
+save_sequence("seq_pb1.inc", seq, g)
 ```
 
 Use `make_generator(id, alphabet; kwargs...)` for standard cases. The `id` may
@@ -80,42 +32,7 @@ type-name alias such as `:SpectralFGN`. Use `method_ids()` to list methods and
 `method_info(id)` to inspect defaults, standard cases, and a short description.
 The method-specific constructors remain the precise API when you need full
 control over transition matrices, excitation matrices, or other scientific
-settings.
-
-## Standard Factory API
-
-`make_generator` gives all implemented methods one lightweight construction
-path for common examples and smoke tests:
-
-```julia
-g = make_generator(:MB1c, [:a, :b]; beta = 0.5, d = 500)
-seq = generate(g, 1000; rng = StableRNG(7))
-```
-
-The factory accepts the following method IDs:
-
-| ID | Type | Standard cases |
-|----|------|----------------|
-| `:PB1` | `SpectralFGN` | `:standard` |
-| `:PB2` | `LGCM` | `:standard` |
-| `:PB3` | `WaveletMarkov` | `:persistent_regimes`, `:iid_regimes` |
-| `:PB4` | `IntermittentMapSymbols` | `:standard` |
-| `:MB1a` | `LAMP` | `:repeat`, `:iid` |
-| `:MB1b` | `DyadicLAMP` | `:repeat`, `:iid` |
-| `:MB1c` | `CalibratedAdditiveMarkov` | `:standard`, `:iid` |
-| `:MB2` | `OnOffMarkov` | `:persistent_regimes`, `:iid_regimes` |
-| `:MB3` | `FSS` | `:standard` |
-| `:MB4` | `HawkesSymbol` | `:identity_excitation` |
-| `:MB5` | `DuplicationMutation` | `:standard` |
-
-Factory defaults are intentionally conservative standard cases, not scientific
-calibrations. For example, the PB3 and MB2 persistent-regime defaults create one
-iid and one repeat-biased Markov regime so symbol-level diagnostics can see the
-latent regime process. Inspect the exact defaults with:
-
-```julia
-method_info(:MB2).defaults
-```
+settings. See [API](@ref) for the clean construction and testing workflow.
 
 ## Generators
 
@@ -204,48 +121,8 @@ symbol-level ACF and spectrum look nearly short-memory.
 spectral fGn latent series into regimes. The legacy `driver = :haar` cascade is
 retained for comparison in validation studies.
 
-Reproducible controllability studies live in `validation/`, for example:
-
-```julia
-julia --project=. validation/marginal_control.jl
-julia --project=. validation/local_structure.jl
-julia --project=. validation/lrd_method_diagnostics.jl
-julia --project=validation validation/longmemory_comparison.jl
-```
-
-The LRD diagnostic script writes generated sequences and summary tables as INC
-files under `validation/results/lrd_diagnostics/`, and writes log-log SVG plots of
-log-binned one-hot autocorrelation and power-spectrum summaries.
-The symbolic-to-numeric transformation is formalized in
-`validation/lrd_symbol_diagnostics.jl`: each symbol is converted to a centered
-one-hot indicator series before autocorrelation, autocovariance, or periodogram
-calculations. `validation/longmemory_comparison.jl` compares those helpers with
-LongMemory.jl's `autocovariance`, `autocorrelation`, and `periodogram`, including
-the documented lag-zero and angular-frequency adaptations.
-Autocorrelation SVG plots include dashed vertical interpretation limits: a
-finite-sample `n / 10` lag limit, and explicit generator limits where they exist,
-such as `LAMP.d`. Power-spectrum plots show the same scales as reciprocal
-frequencies. Autocorrelation plots also include a gray dashed nominal
-power-law reference line with slope `lag^(-beta)`, anchored to the first positive
-plotted autocorrelation value. Power-spectrum plots include the corresponding
-gray dashed low-frequency reference with slope `frequency^(beta - 1)`.
-
-See `VALIDATION_POLICY.md` for the validation tiers. Fast tests run through the
-package test suite. Longer validation studies and larger benchmark runs are manual
-or flag-controlled.
-
-## Benchmarking
-
-Benchmarking uses a separate environment under `benchmark/`:
-
-```julia
-julia --project=benchmark benchmark/benchmarks.jl
-S5_BENCHMARK_LARGE=true julia --project=benchmark benchmark/benchmarks.jl
-```
-
-The default suite covers all implemented generators across moderate sequence
-lengths and alphabet sizes. The large suite adds longer runs and should be treated
-as machine-specific performance evidence rather than a correctness test.
+Reproducible controllability studies and performance runs are documented on
+[Validation and Benchmarks](@ref).
 
 ## Motivations
 

@@ -107,6 +107,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   construct standard generator cases through one entry point.
 - Expanded README, Documenter pages, validation notes, benchmark notes, and
   public docstrings with updated factory, PB4, MB1c, MB4, and MB5 examples.
+- Reorganized Documenter documentation into `Home`, `API`, `Validation and
+  Benchmarks`, and `Reference` pages, with the raw docstring reference moved to
+  the dedicated `Reference` page.
 
 ## [0.1.0] — 2026-06-04
 
