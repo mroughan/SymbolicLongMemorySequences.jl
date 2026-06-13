@@ -9,8 +9,10 @@ makedocs(
         canonical  = nothing,
     ),
     pages = [
-        "Home"          => "index.md",
-        "API Reference" => "api.md",
+        "Home"                      => "index.md",
+        "API"                       => "api.md",
+        "Validation and Benchmarks" => "validation_benchmarks.md",
+        "Reference"                 => "reference.md",
     ],
     checkdocs = :exports,
     warnonly  = false,
