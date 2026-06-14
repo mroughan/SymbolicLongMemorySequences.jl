@@ -223,10 +223,16 @@ an empirical claim about a finite symbolic record.
 \paragraph{Voss (1992).}
 \emph{Evolution of long-range fractal correlations and $1/f$ noise in DNA base
 sequences.}
-Voss is another early application paper connecting base sequences with fractal
-correlation and spectral language. It belongs in the bibliography as a classic
-DNA application reference, even though S5.jl should continue to describe its own
-generators as finite simulations rather than as biological genome models.
+Voss is an early and especially important symbolic-sequence paper. The paper
+criticizes low-dimensional DNA walks because arbitrary numerical encodings can
+introduce artificial correlations, and instead decomposes a symbolic sequence
+into one binary indicator sequence per base. The resulting equal-symbol
+correlation and spectral-density summaries are very close in spirit to S5.jl's
+centered one-hot validation diagnostics. Voss then applies the method to
+GenBank categories and reports low-frequency $1/f^\beta$ behavior together
+with short-range periodicities such as codon-scale peaks. For S5.jl, the main
+lesson is methodological: symbolic LRD diagnostics should be defined at the
+symbol level before any numerical estimation is applied.
 
 \paragraph{Buldyrev et al. (1998).}
 \emph{Analysis of DNA sequences using methods of statistical physics.}
@@ -423,10 +429,15 @@ contracts.
 
 \paragraph{Singh, Greenberg, and Klakow (2016).}
 \emph{The custom decay language model for long range dependencies.}
-This language-modelling paper is closely related to LAMP in spirit: it uses a
-custom decay over historical context to model long-range dependencies in text.
-It supports the idea that symbolic sequences need memory mechanisms distinct
-from ordinary short-context Markov models.
+This language-modelling paper is closely related to LAMP in spirit, but its
+mechanism is more semantic and predictive than S5.jl's present generators. CDLM
+combines a short-distance $N$-gram language model with a log-linear
+long-distance component over word vectors, transformed by distance-specific
+matrices $T_k$. Those matrices allow a custom decay of contextual influence
+rather than a single scalar decay. S5.jl does not implement a word-vector
+language model, but the paper supports the broader MB1 design idea: finite
+symbolic histories can be weighted by explicit distance kernels while keeping
+the parameter growth far below that of high-order Markov models.
 
 \paragraph{Dębowski (2015).}
 \emph{Hilberg exponents: new measures of long memory in the process.}
@@ -462,11 +473,194 @@ visible even though the package itself remains a generator library.
 \paragraph{Wieczyński and Dębowski (2025).}
 \emph{Long-range dependence in word time series: the cosine correlation of
 embeddings.}
-This recent title is relevant to categorical sequence analysis because it
-studies word sequences through embedding-based correlations rather than direct
-numeric observations. It suggests a possible validation direction for symbolic
+This recent paper studies word sequences through embedding-based correlations
+rather than direct numeric observations. It defines LRD through slower than
+exponential decay of two-point Shannon mutual information and uses a cosine
+correlation of word2vec embeddings as a tractable lower-bound proxy. The
+authors report a visible stretched-exponential decay for natural texts up to
+lags around 1000 words, while a human-vs-LLM corpus does not show the same
+systematic signal. This suggests a possible validation direction for symbolic
 generators whose alphabet elements later receive semantic or learned
-representations.
+representations, but it is not yet part of S5.jl's core validation path.
+
+\section{Model Details and S5.jl Adaptations}
+
+This section records the concrete model ideas suggested by the downloaded
+literature and how S5.jl adapts them. The distinction is important: many papers
+study diagnostics or fitted models for real data, whereas S5.jl implements
+reproducible generators with explicit finite-sample controls.
+
+\subsection{Indicator and Spectral Symbol Diagnostics}
+
+Voss (1992) is not a generator paper, but it is central to how symbolic LRD
+should be measured. The paper defines one indicator sequence $U_k[x_n]$ for
+each symbol $k$ and computes equal-symbol correlations and spectra from those
+indicator sequences. This avoids assigning arbitrary numeric values to bases.
+S5.jl modifies this diagnostic idea by using centered one-hot indicator series
+in validation:
+\[
+  x_t^{(k)} = 1\{X_t = k\} - \bar{p}_k .
+\]
+Centering removes the symbol marginal from the zero-frequency component before
+autocorrelation or periodogram calculations. The implementation also averages
+over symbols and replicates, drops undefined constant indicators, and marks
+finite-sample and generator-memory interpretation limits on plots. Thus Voss's
+equal-symbol analysis becomes a reproducible validation transformation rather
+than a generator API.
+
+\subsection{PB1: Spectral fGn Plus Quantization}
+
+Paxson (1997), together with the fGn simulation surveys by Dieker (2004),
+Coeurjolly (2000), Wood and Chan (1994), Dietrich and Newsam (1997), and
+Craigmile (2000/2003), supplies the numerical simulation background for PB1.
+The literature model is a real-valued Gaussian process with a target
+long-memory spectrum or covariance. S5.jl modifies this into a symbolic
+generator by synthesizing approximate fGn and then rank-binning the sample into
+alphabet symbols. The rank bins are chosen from requested marginal
+probabilities, giving finite-sample counts as close as possible to the target
+marginal. The modification is deliberately labeled property-based: the LRD
+structure lives in a latent numerical layer and is inherited only after
+quantization.
+
+\subsection{PB2: Latent Gaussian Categorical Mapping}
+
+Gal, Chen, and Ghahramani (2015) model multivariate categorical observations by
+placing latent Gaussian structure behind a softmax-like categorical
+observation model. Their paper is about Bayesian distribution estimation for
+categorical vectors, not LRD time-series synthesis. S5.jl adapts the idea by
+using one latent fGn stream per symbol and choosing the emitted symbol by an
+argmax over the latent values plus calibrated offsets. The calibration offsets
+target the requested marginal distribution in finite samples. This keeps the
+useful latent-Gaussian categorical mechanism while replacing the original
+inference problem with a reproducible sequence generator.
+
+\subsection{PB3: Multiscale Driver with Markov Regimes}
+
+The wavelet and multiscale LRD literature motivates PB3, but S5.jl treats the
+current implementation as a practical generator rather than a completed
+wavelet-calibrated theory. The implemented model draws a latent long-memory
+driver, bins that driver into regimes, and lets each regime select a Markov
+transition matrix for the visible symbols. The original Haar-like cascade is
+retained as a comparison path, while the default uses a spectral fGn driver
+because validation showed that the earlier cascade produced overly flat
+autocorrelation. The S5.jl modification is therefore twofold: it makes the
+observable local structure explicit through Markov matrices, and it keeps the
+driver choice visible in provenance.
+
+\subsection{PB4: Intermittent Map Symbols}
+
+Provata and Beck (2012) use intermittent polynomial maps, including coupled
+map lattices, to model genomic symbolic statistics. Their construction maps a
+continuous intermittent dynamical system into DNA symbols by partitioning phase
+space so that symbol frequencies match the target sequence. S5.jl implements a
+one-dimensional intermittent-map generator, then rank-bins the latent
+trajectory into arbitrary alphabets with requested marginal probabilities. It
+does not yet implement the coupled-map network machinery or fit
+chromosome-specific partition boundaries. This keeps PB4 a simple
+property-based generator with a latent dynamical source of long laminar
+episodes.
+
+\subsection{MB1a and MB1b: LAMP-Style Additive Histories}
+
+Kumar, Raghu, Sarlos, and Tomkins (2017) define LAMP by selecting a lag from a
+history distribution $w$ and then applying a transition matrix $P$ from the
+state at that lag. Their main aim is a learnable sequence model with long
+context and relatively few parameters compared with high-order Markov chains.
+S5.jl adapts this into MB1a by using an explicit finite history depth $d$, a
+power-law lag distribution, a user-visible transition matrix, and an innovation
+term toward the declared marginal distribution. The innovation term is an
+S5.jl engineering modification to avoid finite-history absorption and keep
+marginal control visible.
+
+MB1b is a scalability modification rather than a separate literature model. It
+groups old lags into dyadic buckets and uses bucket-level symbol mixtures
+instead of scanning every lag. The scientific identity remains LAMP-like
+additive history weighting, but the implementation trades exact finite-history
+weights for a scalable approximation whose cutoff and approximation status are
+documented.
+
+\subsection{MB1c: Additive Markov Memory Functions}
+
+Mayzelis et al. (2006) and Melnyk, Usatenko, and Yampol'skii (2006) develop
+additive $N$-step Markov chains where conditional symbol probabilities are
+linear functions of previous symbols, and where memory functions can be related
+to desired correlation functions. S5.jl's MB1c is the closest implemented path
+to this literature. It uses a centered additive memory function around the
+target marginal:
+\[
+  q(s) = p(s) + \rho \sum_{r=1}^{d} w_r
+  \left(1\{X_{t-r}=s\} - p(s)\right),
+\]
+with finite cutoff $d$, normalized power-law weights, and a strength parameter
+$\rho$. The current implementation does not solve the inverse problem of
+recovering a memory function from a target correlation curve; that remains a
+future calibration path.
+
+\subsection{CDLM as a Future Text-Oriented Additive Model}
+
+Singh, Greenberg, and Klakow (2016) propose CDLM, a language model combining a
+short-distance trigram component with a log-linear long-distance term over word
+vectors and distance-specific transition matrices $T_k$. S5.jl does not
+implement CDLM because it would require a vocabulary embedding model and a
+predictive language-modelling objective, both outside the current generator
+scope. The useful idea for S5.jl is the separation of short-range symbolic
+detail from a parametric long-range decay mechanism. A future text-oriented
+generator could adapt this by replacing word embeddings with user-supplied
+symbol features while preserving S5.jl's explicit RNG, provenance, and control
+contracts.
+
+\subsection{MB2 and MB3: Heavy-Tailed Regimes and Renewal Streams}
+
+Garrett and Willinger (1994), Lowen and Teich's point-process work, Ryu and
+Lowen (1998), and Roughan, Yates, and Veitch (1999) motivate heavy-tailed
+source and renewal mechanisms. In the literature, LRD arises because on/off
+periods or renewal intervals have heavy-tailed distributions, and superposition
+or aggregation can produce self-similar traffic. S5.jl adapts this in two
+symbolic directions. MB2 uses heavy-tailed regime sojourns while emissions
+within each regime follow explicit Markov transition matrices. MB3 assigns
+each symbol its own renewal stream and emits the symbol with the next pending
+event. S5.jl keeps the Roughan--Yates--Veitch warning visible: finite samples
+can miss the largest renewal scales, so validation plots mark interpretation
+limits and the package does not treat a finite simulation as proof of LRD.
+
+\subsection{MB4: Hawkes-Style Symbol Excitation}
+
+Ogura et al. (2022) model word occurrence signals as Hawkes processes, with
+Type-I words showing bursty long-range dynamic correlations and Type-II words
+behaving closer to uncorrelated background. Their model is fitted to binary
+occurrence signals for individual words. S5.jl modifies the idea into a
+discrete-time finite-history symbolic generator: every alphabet symbol has a
+baseline intensity, each recent symbol contributes a power-law weighted row of
+an excitation matrix, and one symbol is sampled at each time step. This is a
+finite-history symbolic analogue, not a fitted continuous-time Hawkes process.
+
+\subsection{MB5: Duplication-Mutation Growth}
+
+Li's expansion-modification work, Salgado-Garcia and Ugalde (2012), and
+Koroteev (2015) motivate symbolic growth models based on copying and mutation.
+Koroteev's downloaded paper focuses on duplication-mutation dynamics in DNA and
+the length distributions of exact repeats, rather than directly on
+autocorrelation. S5.jl's MB5 adapts the broad copy/mutate mechanism to
+sequence synthesis by selecting a copy lag from a truncated power-law distance
+kernel and mutating copied symbols with a configured probability. An earlier
+block-source interpretation was dropped after validation showed nearly flat
+autocorrelation. The current implementation is therefore a pragmatic
+power-law-lag copy generator, not a full chromosome-evolution model with
+insertions, block rearrangements, or exact-repeat length calibration.
+
+\subsection{Machine-Learning Benchmarks and Diagnostics}
+
+Belletti et al. (2018), Vaswani et al. (2017), Tay et al. (2021), Debowski's
+Hilberg-exponent work, and Wieczynski and Debowski (2025) do not directly
+define S5.jl generators. They motivate why controlled symbolic LRD sequences
+are useful. Belletti et al. argue that common gated recurrent architectures may
+fail to sustain LRD-like memory. Long Range Arena standardizes long-context
+model comparisons, but does not focus on statistically controlled LRD
+generators. Wieczynski and Debowski use embedding cosine correlation as a proxy
+for mutual information in word time series. These papers suggest future
+validation and learning tasks: feed S5.jl sequences to learners, compare local
+and long-context performance, and later test embedding-based diagnostics for
+large symbolic alphabets.
 
 \subsection{Entropy, Predictability, and Information Storage}
 
@@ -491,9 +685,14 @@ predictive information.
 \paragraph{Belletti, Beutel, Jain, and Chi (2018).}
 \emph{Factorized recurrent neural architectures for longer range dependence.}
 This paper motivates the project from the machine-learning side by showing that
-common recurrent architectures struggle with long-range dependence. It helps
-explain why synthetic NN-LRD data is useful for stress-testing learning
-algorithms.
+common recurrent architectures struggle with long-range dependence. Its
+theoretical argument connects gated recurrent dynamics and bounded nonlinear
+state updates to short memory under assumptions related to vanishing gradients.
+The proposed factorized recurrent architecture is not a source model for
+S5.jl, but it helps explain why synthetic NN-LRD data is useful for
+stress-testing learning algorithms: a learner can appear strong on local
+sequence modelling while still failing on dependence that persists over large
+lags.
 
 \paragraph{Belletti, Chen, and Chi (2019).}
 \emph{Quantifying long range dependence in language and user behavior to improve
@@ -513,9 +712,12 @@ dependencies for training and stress-testing transformer-style models.
 \paragraph{Tay et al. (2021).}
 \emph{Long Range Arena: A benchmark for efficient transformers.}
 Long Range Arena motivates synthetic and semi-synthetic tasks designed to test
-long-context modelling. S5.jl extends this spirit to LRD categorical processes
-where statistical structure, alphabet, marginal distribution, and local Markov
-structure can be controlled.
+long-context modelling. The downloaded preprint describes tasks with inputs
+roughly from 1K to 16K tokens, including byte-level text, retrieval, image-like
+data, and synthetic hierarchical reasoning. S5.jl extends this spirit in a more
+statistical direction: rather than benchmarking transformer variants directly,
+it produces categorical processes where alphabet, marginal distribution, local
+Markov structure, and nominal LRD mechanism can be controlled and recorded.
 
 \subsection{Two-Dimensional and Spatial Self-Similar Processes}
 

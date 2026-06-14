@@ -110,6 +110,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Reorganized Documenter documentation into `Home`, `API`, `Validation and
   Benchmarks`, and `Reference` pages, with the raw docstring reference moved to
   the dedicated `Reference` page.
+- Verified five additional downloaded references, updated `paper/DOWNLOAD.mn`,
+  and expanded the annotated bibliography with source-matched summaries plus a
+  model-details section mapping literature models to S5.jl adaptations.
 
 ## [0.1.0] — 2026-06-04
 

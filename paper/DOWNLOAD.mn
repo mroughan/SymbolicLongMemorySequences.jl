@@ -193,6 +193,48 @@ This file tracks local reference PDFs for the paper bibliography.
   - Local file: none.
   - Match/status: Matthew owns a print copy; no local PDF is expected.
 
+- [x] Voss (1992).
+  "Evolution of long-range fractal correlations and 1/f noise in DNA base
+  sequences."
+  - Local file: `paper/downloads/Vos92.pdf`
+  - Match: exact Physical Review Letters article.
+  - Note: PDF is a scanned image; OCR confirms the equal-symbol indicator
+    decomposition and spectral-density method.
+
+- [x] Singh, Greenberg, and Klakow (2016).
+  "The custom decay language model for long range dependencies."
+  - Local file: `paper/downloads/singh_et_al_sd733a.pdf`
+  - Match: exact conference/workshop paper.
+
+- [x] Belletti, Beutel, Jain, and Chi (2018).
+  "Factorized recurrent neural architectures for longer range dependence."
+  - Local file: `paper/downloads/belletti18a.pdf`
+  - Match: exact AISTATS/PMLR article.
+
+- [x] Tay et al. (2021).
+  "Long Range Arena: a benchmark for efficient transformers."
+  - Local file: `paper/downloads/2011.04006v1.pdf`
+  - Match: arXiv v1 preprint of the ICLR 2021 paper.
+  - Related source: `https://github.com/google-research/long-range-arena`
+  - BibTeX supplied in earlier notes:
+    ```
+    @inproceedings{
+    tay2021long,
+    title={Long Range Arena : A Benchmark for Efficient Transformers },
+    author={Yi Tay and Mostafa Dehghani and Samira Abnar and Yikang Shen and Dara Bahri and Philip Pham and Jinfeng Rao and Liu Yang and Sebastian Ruder and Donald Metzler},
+    booktitle={International Conference on Learning Representations},
+    year={2021},
+    url={https://openreview.net/forum?id=qVyeW-grC2k}
+    }
+    ```
+
+- [x] Wieczyński and Dębowski (2025).
+  "Long-range dependence in word time series: the cosine correlation of
+  embeddings."
+  - Local file: `paper/downloads/wiecznski_debowski.pdf`
+  - Match: exact Entropy 2025 open-access article.
+  - DOI: `10.3390/e27060613`
+
 ## Open PDFs Already Saved In `paper/references/`
 
 - [x] Altmann, Cristadoro, and Degli Esposti (2012).
@@ -255,16 +297,6 @@ This file tracks local reference PDFs for the paper bibliography.
   - Note: only a partial related book preview and a related arXiv article are
     currently available locally.
 
-- [ ] `voss_1992_fractal_correlations_1_f_dna_base_sequences.pdf`
-  - Voss, R. F. (1992).
-    "Evolution of long-range fractal correlations and 1/f noise in DNA base
-    sequences."
-  - DOI/search: Physical Review Letters 68, 3805.
-
-- [ ] `singh_greenberg_klakow_2016_custom_decay_language_model.pdf`
-  - Singh, M., Greenberg, C., & Klakow, D. (2016).
-    "The custom decay language model for long range dependencies."
-
 - [ ] `crutchfield_feldman_2003_entropy_convergence.pdf`
   - Crutchfield, J. P., & Feldman, D. P. (2003).
     "Regularities unseen, randomness observed: Levels of entropy convergence."
@@ -273,18 +305,3 @@ This file tracks local reference PDFs for the paper bibliography.
 - [ ] `bialek_nemenman_tishby_2001_predictability_complexity_learning.pdf`
   - Bialek, W., Nemenman, I., & Tishby, N. (2001).
     "Predictability, complexity, and learning."
-
-- [ ] `belletti_beutel_jain_chi_2018_factorized_rnn_lrd.pdf`
-  - Belletti, F., Beutel, A., Jain, S., & Chi, E. (2018).
-    "Factorized recurrent neural architectures for longer range dependence."
-
-- [ ] `tay_et_al_2021_long_range_arena.pdf`
-  - Tay, Y., et al. (2021). "Long Range Arena: a benchmark for efficient
-    transformers."
-
-- [ ] `wieczynski_debowski_2025_lrd_word_time_series_embeddings.pdf`
-  - Wieczyński, M., & Dębowski, Ł. (2025).
-    "Long-range dependence in word time series: the cosine correlation of
-    embeddings."
-  - Source/search: title and authors; open PDF not found during the 2026-06-12
-    bibliography pass.
