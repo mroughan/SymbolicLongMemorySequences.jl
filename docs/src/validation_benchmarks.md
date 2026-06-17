@@ -76,15 +76,25 @@ The script writes:
 - `average_power_spectrum.inc`;
 - `plot_autocorrelation_logbins.inc`;
 - `plot_power_spectrum_logbins.inc`;
-- SVG plots under `validation/results/lrd_diagnostics/plots/`.
+- paired SVG plots under `validation/results/lrd_diagnostics/plots/`, with
+  autocorrelation on the left and power spectrum on the right.
 
 Autocorrelation plots include a vertical dashed finite-sample interpretation
 limit at lag `n / 10`. Methods with explicit finite memory, such as `LAMP`,
 `DyadicLAMP`, `CalibratedAdditiveMarkov`, `HawkesSymbol`, and
 `DuplicationMutation`, also mark the generator cutoff. Power-spectrum plots show
-the reciprocal scales. Gray dashed reference lines show the nominal power-law
-slope implied by each generator's configured decay parameter; they are visual
-guides, not fitted curves and not proofs of LRD behavior.
+the reciprocal scales. Methods with a defensible asymptotic-onset scale also
+mark an approximate power-law onset: `OnOffMarkov` uses its Pareto scale `L_min`,
+and `HawkesSymbol` uses the lag where the local log-log slope of
+`(lag + c)^(-beta)` reaches 90% of its asymptotic slope. Gray dashed reference
+lines show the nominal power-law slope implied by each generator's configured
+decay parameter; they are visual guides, not fitted curves and not proofs of LRD
+behavior.
+
+The MB4 (`HawkesSymbol`) plots are a current cautionary case. The finite
+discrete-time, probability-normalized implementation can produce short-range
+burstiness while its centered one-hot power spectrum remains close to white
+noise. Treat MB4 as implemented but not yet a strong symbolic LRD baseline.
 
 ## LongMemory.jl Comparison
 

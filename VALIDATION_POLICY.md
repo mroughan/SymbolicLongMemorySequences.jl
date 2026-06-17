@@ -71,6 +71,11 @@ the default finite-sample limit is lag `n / 10`, because estimates at much large
 lags rely on a shrinking number of overlapping pairs. Spectrum plots should mark
 the reciprocal scale. If a generator has an explicit internal cutoff, such as
 `LAMP.d`, the plot should mark that as a separate generator limit.
+When a generator has a defensible short-range-to-tail onset scale, plots may also
+mark an approximate power-law onset. This is a visual guide, not a fitted
+transition point. For example, a Pareto sojourn model can use its scale
+parameter, while an offset kernel `(lag + c)^(-beta)` can mark the lag where its
+local log-log slope reaches a chosen fraction of the asymptotic slope.
 
 ## Benchmarking
 

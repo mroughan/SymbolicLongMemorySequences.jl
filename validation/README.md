@@ -102,6 +102,13 @@ the spectral driver can be damped strongly by the rank-binning and Markov
 emission layers. Further PB3 work should validate the latent driver, regime
 indicators, and emitted symbols separately.
 
+The current MB4 validation should also be read cautiously. `HawkesSymbol`
+produces short-range burstiness, but the centered one-hot power spectrum can look
+close to white noise under the default finite discrete-time construction. A
+better MB4 path likely needs a near-critical or event-count formulation rather
+than only increasing the identity-excitation strength in the present
+probability-normalized sampler.
+
 The script computes the one-hot symbol autocorrelation and power spectrum for each
 sequence, averages across symbols and replicates, and writes:
 
@@ -112,8 +119,9 @@ sequence, averages across symbols and replicates, and writes:
 
 The log-binning code keeps the final bin closed only at its upper edge and sorts
 the binned x-values before writing tables and SVG polylines, so plot x-values are
-strictly increasing within each method. Log-log SVG plots are written under
-`validation/results/lrd_diagnostics/plots/`.
+strictly increasing within each method. Paired log-log SVG plots are written
+under `validation/results/lrd_diagnostics/plots/`, with autocorrelation on the
+left and power spectrum on the right.
 
 The SVG plots include vertical dashed interpretation limits. The red line marks
 the finite-sample lag limit `n / 10`, chosen so autocorrelation estimates are not
@@ -123,6 +131,12 @@ explicit internal memory limit may add a second dashed line; for example, `LAMP`
 `DyadicLAMP`, `CalibratedAdditiveMarkov`, and `HawkesSymbol` mark their
 configured history depth `d`, while `DuplicationMutation` marks its configured
 maximum copy-distance window.
+Where a generator has a defensible asymptotic-onset scale, the plots also mark an
+approximate power-law onset. For `OnOffMarkov` this is the Pareto scale `L_min`.
+For `HawkesSymbol`, whose kernel is `(lag + c)^(-beta)`, the onset is the lag at
+which the kernel's local log-log slope reaches 90% of the asymptotic slope:
+`ceil(0.9c / 0.1)`. This is only a visual guide; the transition is gradual and
+does not imply that earlier lags are irrelevant.
 Autocorrelation and power-spectrum plots also include gray dashed nominal
 power-law reference lines, anchored at the first positive plotted value. The ACF
 reference has slope `lag^(-beta)`, while the spectral-density reference has the

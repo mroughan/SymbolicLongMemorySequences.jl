@@ -302,6 +302,17 @@ Implemented as `WaveletMarkov`.
       suggests the legacy Haar path can be too flat, while the spectral path can
       be damped strongly by rank-binning and Markov emission.
 
+### MB4: Hawkes-Style Symbolic Process
+
+Implemented as `HawkesSymbol`, but current validation is weak.
+
+- [ ] Rework or supplement MB4 with a more faithful near-critical/event-count
+      Hawkes construction. The present finite discrete-time sampler uses
+      probability-normalized intensities and can show short-range burstiness
+      while its centered one-hot power spectrum remains close to white noise.
+      Simply increasing identity excitation does not appear to recover the
+      nominal low-frequency power-law slope.
+
 ### MB1: Linear-Additive Markov Process
 
 Implemented as exact `LAMP` (MB1a) and approximate `DyadicLAMP` (MB1b).

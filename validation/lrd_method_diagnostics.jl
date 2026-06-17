@@ -131,6 +131,23 @@ intrinsic_lag_limit(g::CalibratedAdditiveMarkov) = g.d
 intrinsic_lag_limit(g::HawkesSymbol) = g.d
 intrinsic_lag_limit(g::DuplicationMutation) = g.max_block_length
 
+function asymptotic_lag_threshold(g; slope_fraction::Real = 0.9)
+    return nothing
+end
+
+asymptotic_lag_threshold(g::OnOffMarkov; slope_fraction::Real = 0.9) =
+    max(1, ceil(Int, g.L_min))
+
+function asymptotic_lag_threshold(g::HawkesSymbol; slope_fraction::Real = 0.9)
+    0 < slope_fraction < 1 ||
+        throw(ArgumentError("slope_fraction must be in (0, 1)"))
+
+    # For an offset kernel (lag + c)^(-beta), the log-log slope magnitude is
+    # beta * lag / (lag + c). Mark the lag where it reaches the requested
+    # fraction of its asymptotic value beta.
+    return max(1, ceil(Int, slope_fraction * g.c / (1 - slope_fraction)))
+end
+
 function acf_limit_annotations(g, n::Int)
     finite_limit = diagnostic_lag_limit(n)
     annotations = [(;
@@ -138,6 +155,14 @@ function acf_limit_annotations(g, n::Int)
         label = "finite-sample limit n/10",
         color = "#d62728",
     )]
+    threshold = asymptotic_lag_threshold(g)
+    if threshold !== nothing && threshold > 1 && threshold != finite_limit
+        push!(annotations, (;
+            x = threshold,
+            label = "approx. power-law onset",
+            color = "#2ca02c",
+        ))
+    end
     intrinsic = intrinsic_lag_limit(g)
     if intrinsic !== nothing && intrinsic > 0 && intrinsic != finite_limit
         push!(annotations, (;
@@ -200,86 +225,117 @@ function spectrum_power_law_reference(x::AbstractVector{<:Real}, y::AbstractVect
         label = "nominal spectrum beta=$(round(beta; digits = 3))")
 end
 
-function write_loglog_svg(path, title, xlabel, ylabel, x, y;
-                          vertical_lines = NamedTuple[],
-                          reference_lines = NamedTuple[])
+function _loglog_panel_data(x, y, reference_lines)
     pts = [(Float64(xi), Float64(yi)) for (xi, yi) in zip(x, y)
            if xi > 0 && yi > 0 && isfinite(xi) && isfinite(yi)]
     sort!(pts; by = first)
-    isempty(pts) && throw(ArgumentError("cannot write log-log SVG with no positive points"))
+    isempty(pts) && throw(ArgumentError("cannot write log-log panel with no positive points"))
     ref_pts = Tuple{Float64, Float64}[]
     for ref in reference_lines
         append!(ref_pts, [(Float64(xi), Float64(yi)) for (xi, yi) in zip(ref.x, ref.y)
                           if xi > 0 && yi > 0 && isfinite(xi) && isfinite(yi)])
     end
-    width, height = 900, 650
-    ml, mr, mt, mb = 90, 30, 55, 80
     all_pts = isempty(ref_pts) ? pts : vcat(pts, ref_pts)
     xmin, xmax = extrema(first.(all_pts))
     ymin, ymax = extrema(last.(all_pts))
     lxmin, lxmax = log10(xmin), log10(xmax)
     lymin, lymax = log10(ymin), log10(ymax)
     lymin == lymax && (lymax += 1)
+    return (; pts, xmin, xmax, ymin, ymax, lxmin, lxmax, lymin, lymax)
+end
 
-    sx(v) = ml + (log10(v) - lxmin) / (lxmax - lxmin) * (width - ml - mr)
-    sy(v) = height - mb - (log10(v) - lymin) / (lymax - lymin) * (height - mt - mb)
+function _draw_loglog_panel(io, panel, title, xlabel, ylabel, x, y;
+                            vertical_lines = NamedTuple[],
+                            reference_lines = NamedTuple[])
+    data = _loglog_panel_data(x, y, reference_lines)
+    x0, y0, width, height = panel.x, panel.y, panel.width, panel.height
+    ml, mr, mt, mb = 78, 22, 48, 68
+    plot_left = x0 + ml
+    plot_right = x0 + width - mr
+    plot_top = y0 + mt
+    plot_bottom = y0 + height - mb
+    plot_width = plot_right - plot_left
+    plot_height = plot_bottom - plot_top
+
+    sx(v) = plot_left + (log10(v) - data.lxmin) / (data.lxmax - data.lxmin) * plot_width
+    sy(v) = plot_bottom - (log10(v) - data.lymin) / (data.lymax - data.lymin) * plot_height
 
     poly = join(["$(round(sx(xi); digits=2)),$(round(sy(yi); digits=2))"
-                 for (xi, yi) in pts], " ")
+                 for (xi, yi) in data.pts], " ")
 
+    println(io, """<text x="$(x0 + width / 2)" y="$(y0 + 25)" text-anchor="middle" font-family="sans-serif" font-size="18">$(svg_escape(title))</text>""")
+    println(io, """<line x1="$plot_left" y1="$plot_bottom" x2="$plot_right" y2="$plot_bottom" stroke="black"/>""")
+    println(io, """<line x1="$plot_left" y1="$plot_top" x2="$plot_left" y2="$plot_bottom" stroke="black"/>""")
+
+    for e in floor(Int, data.lxmin):ceil(Int, data.lxmax)
+        val = 10.0^e
+        data.xmin ≤ val ≤ data.xmax || continue
+        xpix = sx(val)
+        println(io, """<line x1="$xpix" y1="$plot_bottom" x2="$xpix" y2="$(plot_bottom + 5)" stroke="black"/>""")
+        println(io, """<text x="$xpix" y="$(plot_bottom + 24)" text-anchor="middle" font-family="sans-serif" font-size="11">10^$e</text>""")
+    end
+    for e in floor(Int, data.lymin):ceil(Int, data.lymax)
+        val = 10.0^e
+        data.ymin ≤ val ≤ data.ymax || continue
+        ypix = sy(val)
+        println(io, """<line x1="$(plot_left - 5)" y1="$ypix" x2="$plot_left" y2="$ypix" stroke="black"/>""")
+        println(io, """<text x="$(plot_left - 9)" y="$(ypix + 4)" text-anchor="end" font-family="sans-serif" font-size="11">10^$e</text>""")
+    end
+
+    legend_x = plot_right - 235
+    legend_y = plot_top + 16
+    for ref in reference_lines
+        rpts = [(Float64(xi), Float64(yi)) for (xi, yi) in zip(ref.x, ref.y)
+                if xi > 0 && yi > 0 && isfinite(xi) && isfinite(yi)]
+        isempty(rpts) && continue
+        sort!(rpts; by = first)
+        rpoly = join(["$(round(sx(xi); digits=2)),$(round(sy(yi); digits=2))"
+                      for (xi, yi) in rpts], " ")
+        color = get(ref, :color, "#555555")
+        dash = get(ref, :dash, "4 4")
+        label = svg_escape(get(ref, :label, "power-law reference"))
+        println(io, """<polyline fill="none" stroke="$color" stroke-width="2" stroke-dasharray="$dash" points="$rpoly"/>""")
+        println(io, """<line x1="$legend_x" y1="$legend_y" x2="$(legend_x + 34)" y2="$legend_y" stroke="$color" stroke-width="2" stroke-dasharray="$dash"/>""")
+        println(io, """<text x="$(legend_x + 42)" y="$(legend_y + 4)" font-family="sans-serif" font-size="11">$(label)</text>""")
+        legend_y += 17
+    end
+
+    println(io, """<polyline fill="none" stroke="#1f77b4" stroke-width="2" points="$poly"/>""")
+    for line in vertical_lines
+        xv = Float64(line.x)
+        data.xmin ≤ xv ≤ data.xmax || continue
+        xpix = round(sx(xv); digits = 2)
+        color = get(line, :color, "#d62728")
+        label = svg_escape(get(line, :label, "diagnostic limit"))
+        println(io, """<line x1="$xpix" y1="$plot_top" x2="$xpix" y2="$plot_bottom" stroke="$color" stroke-width="2" stroke-dasharray="7 5"/>""")
+        println(io, """<line x1="$legend_x" y1="$legend_y" x2="$(legend_x + 34)" y2="$legend_y" stroke="$color" stroke-width="2" stroke-dasharray="7 5"/>""")
+        println(io, """<text x="$(legend_x + 42)" y="$(legend_y + 4)" font-family="sans-serif" font-size="11">$(label)</text>""")
+        legend_y += 17
+    end
+    println(io, """<text x="$(x0 + width / 2)" y="$(y0 + height - 20)" text-anchor="middle" font-family="sans-serif" font-size="14">$(svg_escape(xlabel))</text>""")
+    println(io, """<text x="$(x0 + 22)" y="$(y0 + height / 2)" transform="rotate(-90 $(x0 + 22) $(y0 + height / 2))" text-anchor="middle" font-family="sans-serif" font-size="14">$(svg_escape(ylabel))</text>""")
+end
+
+function write_diagnostic_pair_svg(path, method, acf_x, acf_y, spectrum_x, spectrum_y;
+                                   acf_vertical_lines = NamedTuple[],
+                                   spectrum_vertical_lines = NamedTuple[],
+                                   acf_reference_lines = NamedTuple[],
+                                   spectrum_reference_lines = NamedTuple[])
+    width, height = 1500, 650
+    left = (; x = 20, y = 58, width = 720, height = 570)
+    right = (; x = 760, y = 58, width = 720, height = 570)
     open(path, "w") do io
         println(io, """<svg xmlns="http://www.w3.org/2000/svg" width="$width" height="$height" viewBox="0 0 $width $height">""")
         println(io, """<rect width="100%" height="100%" fill="white"/>""")
-        println(io, """<text x="$(width/2)" y="28" text-anchor="middle" font-family="sans-serif" font-size="20">$(svg_escape(title))</text>""")
-        println(io, """<line x1="$ml" y1="$(height-mb)" x2="$(width-mr)" y2="$(height-mb)" stroke="black"/>""")
-        println(io, """<line x1="$ml" y1="$mt" x2="$ml" y2="$(height-mb)" stroke="black"/>""")
-
-        for e in floor(Int, lxmin):ceil(Int, lxmax)
-            val = 10.0^e
-            xmin ≤ val ≤ xmax || continue
-            xpix = sx(val)
-            println(io, """<line x1="$xpix" y1="$(height-mb)" x2="$xpix" y2="$(height-mb+5)" stroke="black"/>""")
-            println(io, """<text x="$xpix" y="$(height-mb+25)" text-anchor="middle" font-family="sans-serif" font-size="12">10^$e</text>""")
-        end
-        for e in floor(Int, lymin):ceil(Int, lymax)
-            val = 10.0^e
-            ymin ≤ val ≤ ymax || continue
-            ypix = sy(val)
-            println(io, """<line x1="$(ml-5)" y1="$ypix" x2="$ml" y2="$ypix" stroke="black"/>""")
-            println(io, """<text x="$(ml-10)" y="$(ypix+4)" text-anchor="end" font-family="sans-serif" font-size="12">10^$e</text>""")
-        end
-
-        legend_y = mt + 18
-        for ref in reference_lines
-            rpts = [(Float64(xi), Float64(yi)) for (xi, yi) in zip(ref.x, ref.y)
-                    if xi > 0 && yi > 0 && isfinite(xi) && isfinite(yi)]
-            isempty(rpts) && continue
-            sort!(rpts; by = first)
-            rpoly = join(["$(round(sx(xi); digits=2)),$(round(sy(yi); digits=2))"
-                          for (xi, yi) in rpts], " ")
-            color = get(ref, :color, "#555555")
-            dash = get(ref, :dash, "4 4")
-            label = svg_escape(get(ref, :label, "power-law reference"))
-            println(io, """<polyline fill="none" stroke="$color" stroke-width="2" stroke-dasharray="$dash" points="$rpoly"/>""")
-            println(io, """<line x1="$(width-300)" y1="$legend_y" x2="$(width-260)" y2="$legend_y" stroke="$color" stroke-width="2" stroke-dasharray="$dash"/>""")
-            println(io, """<text x="$(width-252)" y="$(legend_y+4)" font-family="sans-serif" font-size="12">$(label)</text>""")
-            legend_y += 18
-        end
-
-        println(io, """<polyline fill="none" stroke="#1f77b4" stroke-width="2" points="$poly"/>""")
-        for line in vertical_lines
-            xv = Float64(line.x)
-            xmin ≤ xv ≤ xmax || continue
-            xpix = round(sx(xv); digits = 2)
-            color = get(line, :color, "#d62728")
-            label = svg_escape(get(line, :label, "diagnostic limit"))
-            println(io, """<line x1="$xpix" y1="$mt" x2="$xpix" y2="$(height-mb)" stroke="$color" stroke-width="2" stroke-dasharray="7 5"/>""")
-            println(io, """<line x1="$(width-300)" y1="$legend_y" x2="$(width-260)" y2="$legend_y" stroke="$color" stroke-width="2" stroke-dasharray="7 5"/>""")
-            println(io, """<text x="$(width-252)" y="$(legend_y+4)" font-family="sans-serif" font-size="12">$(label)</text>""")
-            legend_y += 18
-        end
-        println(io, """<text x="$(width/2)" y="$(height-25)" text-anchor="middle" font-family="sans-serif" font-size="16">$(svg_escape(xlabel))</text>""")
-        println(io, """<text x="25" y="$(height/2)" transform="rotate(-90 25 $(height/2))" text-anchor="middle" font-family="sans-serif" font-size="16">$(svg_escape(ylabel))</text>""")
+        println(io, """<text x="$(width / 2)" y="30" text-anchor="middle" font-family="sans-serif" font-size="22">$(svg_escape(method)) validation diagnostics</text>""")
+        _draw_loglog_panel(io, left, "Autocorrelation", "lag",
+                           "positive average autocorrelation", acf_x, acf_y;
+                           vertical_lines = acf_vertical_lines,
+                           reference_lines = acf_reference_lines)
+        _draw_loglog_panel(io, right, "Power spectrum", "frequency",
+                           "average periodogram", spectrum_x, spectrum_y;
+                           vertical_lines = spectrum_vertical_lines,
+                           reference_lines = spectrum_reference_lines)
         println(io, """</svg>""")
     end
 end
@@ -306,6 +362,11 @@ function run_lrd_diagnostics(; n::Int = DEFAULT_N,
     plotdir = joinpath(outdir, "plots")
     mkpath(plotdir)
     save_sequences && mkpath(seqdir)
+    for path in readdir(plotdir; join = true)
+        if endswith(path, "_autocorrelation.svg") || endswith(path, "_power_spectrum.svg")
+            rm(path; force = true)
+        end
+    end
 
     acf_rows = NamedTuple[]
     pxx_rows = NamedTuple[]
@@ -347,21 +408,21 @@ function run_lrd_diagnostics(; n::Int = DEFAULT_N,
         append_rows!(acf_plot_rows, method, "lag", "autocorrelation", b_lags, b_acf)
         append_rows!(pxx_plot_rows, method, "frequency", "power", b_freqs, b_power)
 
-        write_loglog_svg(joinpath(plotdir, "$(method)_autocorrelation.svg"),
-                         "$method average autocorrelation",
-                         "lag", "positive average autocorrelation",
-                         b_lags, b_acf;
-                         vertical_lines = acf_limit_annotations(diagnostic_gen, n),
-                         reference_lines = acf_power_law_reference(b_lags, b_acf,
-                                                                   diagnostic_gen))
-        write_loglog_svg(joinpath(plotdir, "$(method)_power_spectrum.svg"),
-                         "$method average power spectrum",
-                         "frequency", "average periodogram",
-                         b_freqs, b_power;
-                         vertical_lines = spectrum_limit_annotations(diagnostic_gen, n),
-                         reference_lines = spectrum_power_law_reference(b_freqs,
-                                                                        b_power,
-                                                                        diagnostic_gen))
+        write_diagnostic_pair_svg(
+            joinpath(plotdir, "$(method)_diagnostics.svg"),
+            method,
+            b_lags,
+            b_acf,
+            b_freqs,
+            b_power;
+            acf_vertical_lines = acf_limit_annotations(diagnostic_gen, n),
+            spectrum_vertical_lines = spectrum_limit_annotations(diagnostic_gen, n),
+            acf_reference_lines = acf_power_law_reference(b_lags, b_acf,
+                                                          diagnostic_gen),
+            spectrum_reference_lines = spectrum_power_law_reference(b_freqs,
+                                                                    b_power,
+                                                                    diagnostic_gen),
+        )
     end
 
     write_diagnostic_inc(

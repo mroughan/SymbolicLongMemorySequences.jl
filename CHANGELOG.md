@@ -70,6 +70,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   driver choice in INC provenance metadata.
 - Added nominal exact power-law reference overlays to autocorrelation and
   power-spectrum validation SVG plots.
+- Added approximate short-range/asymptotic-onset markers to validation plots for
+  generators with defensible onset scales, and documented MB4's weak
+  power-spectrum behavior under the current finite Hawkes-style construction.
 - Removed the now-redundant status column from README method summary tables.
 - Extended the paper annotated bibliography with LRD surveys, numerical
   synthesis methods, symbolic/categorical sequence references, recent language
@@ -108,6 +111,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added a composable property-based API with `LatentSource`, `Symbolizer`, and
   `PropertyBasedGenerator`, plus spectral, Haar, intermittent-map, quantile,
   argmax, and Markov-regime building blocks for mix-and-match PB studies.
+- Replaced separate LRD validation autocorrelation and power-spectrum SVGs with
+  paired diagnostics plots that show both panels side by side for each method.
 - Expanded README, Documenter pages, validation notes, benchmark notes, and
   public docstrings with updated factory, PB4, MB1c, MB4, and MB5 examples.
 - Reorganized Documenter documentation into `Home`, `API`, `Validation and
