@@ -338,6 +338,99 @@ function write_diagnostic_pair_svg(path, method, acf_x, acf_y, spectrum_x, spect
                            reference_lines = spectrum_reference_lines)
         println(io, """</svg>""")
     end
+    svg_to_pdf_if_available(path)
+    return path
+end
+
+function write_property_diagnostic_svg(path, method,
+                                       latent_acf_x, latent_acf_y,
+                                       latent_spectrum_x, latent_spectrum_y,
+                                       symbol_acf_x, symbol_acf_y,
+                                       symbol_spectrum_x, symbol_spectrum_y;
+                                       acf_vertical_lines = NamedTuple[],
+                                       spectrum_vertical_lines = NamedTuple[],
+                                       acf_reference_lines = NamedTuple[],
+                                       spectrum_reference_lines = NamedTuple[])
+    width, height = 1500, 1180
+    panels = (
+        (; x = 20, y = 58, width = 720, height = 520),
+        (; x = 760, y = 58, width = 720, height = 520),
+        (; x = 20, y = 628, width = 720, height = 520),
+        (; x = 760, y = 628, width = 720, height = 520),
+    )
+    open(path, "w") do io
+        println(io, """<svg xmlns="http://www.w3.org/2000/svg" width="$width" height="$height" viewBox="0 0 $width $height">""")
+        println(io, """<rect width="100%" height="100%" fill="white"/>""")
+        println(io, """<text x="$(width / 2)" y="30" text-anchor="middle" font-family="sans-serif" font-size="22">$(svg_escape(method)) latent and symbol validation diagnostics</text>""")
+        _draw_loglog_panel(io, panels[1], "Latent autocorrelation", "lag",
+                           "positive latent autocorrelation",
+                           latent_acf_x, latent_acf_y;
+                           vertical_lines = acf_vertical_lines,
+                           reference_lines = acf_reference_lines)
+        _draw_loglog_panel(io, panels[2], "Latent power spectrum", "frequency",
+                           "latent periodogram",
+                           latent_spectrum_x, latent_spectrum_y;
+                           vertical_lines = spectrum_vertical_lines,
+                           reference_lines = spectrum_reference_lines)
+        _draw_loglog_panel(io, panels[3], "Symbol autocorrelation", "lag",
+                           "positive average one-hot autocorrelation",
+                           symbol_acf_x, symbol_acf_y;
+                           vertical_lines = acf_vertical_lines,
+                           reference_lines = acf_reference_lines)
+        _draw_loglog_panel(io, panels[4], "Symbol power spectrum", "frequency",
+                           "average one-hot periodogram",
+                           symbol_spectrum_x, symbol_spectrum_y;
+                           vertical_lines = spectrum_vertical_lines,
+                           reference_lines = spectrum_reference_lines)
+        println(io, """</svg>""")
+    end
+    svg_to_pdf_if_available(path)
+    return path
+end
+
+function svg_to_pdf_if_available(svg_path::AbstractString)
+    converter = Sys.which("rsvg-convert")
+    converter === nothing && return nothing
+    pdf_path = replace(svg_path, r"\.svg$" => ".pdf")
+    try
+        run(`$converter -f pdf -o $pdf_path $svg_path`)
+    catch err
+        @warn "Could not convert SVG validation plot to PDF" svg_path exception = err
+        return nothing
+    end
+    return pdf_path
+end
+
+latent_diagnostics_available(::Any) = false
+latent_diagnostics_available(::Union{SpectralFGN,LGCM,WaveletMarkov,
+                                     IntermittentMapSymbols,
+                                     PropertyBasedGenerator}) = true
+
+function latent_numeric_diagnostics(latent::AbstractMatrix{<:Real};
+                                    maxlag::Int = size(latent, 2) ÷ 2)
+    series = Vector{Float64}[]
+    for row in axes(latent, 1)
+        x = Float64.(latent[row, :])
+        x .-= mean(x)
+        mean(abs2, x) > 0 && push!(series, x)
+    end
+    isempty(series) && throw(ArgumentError("all latent series have zero variance"))
+
+    acf = zeros(Float64, maxlag)
+    freqs = Float64[]
+    power = Float64[]
+    for x in series
+        acf .+= fft_unbiased_autocorrelation(x, maxlag)
+        f, pxx = fft_periodogram_cycles(x)
+        if isempty(power)
+            freqs = f
+            power = zeros(Float64, length(pxx))
+        end
+        power .+= pxx
+    end
+    acf ./= length(series)
+    power ./= length(series)
+    return acf, freqs, power
 end
 
 function write_diagnostic_inc(path, rows, title, columns)
@@ -370,22 +463,40 @@ function run_lrd_diagnostics(; n::Int = DEFAULT_N,
 
     acf_rows = NamedTuple[]
     pxx_rows = NamedTuple[]
+    latent_acf_rows = NamedTuple[]
+    latent_pxx_rows = NamedTuple[]
     acf_plot_rows = NamedTuple[]
     pxx_plot_rows = NamedTuple[]
+    latent_acf_plot_rows = NamedTuple[]
+    latent_pxx_plot_rows = NamedTuple[]
 
     for (method_index, (method, factory)) in enumerate(generator_factories(alphabet))
         println("Running $method")
         maxlag = n ÷ 2
         avg_acf = zeros(Float64, maxlag)
         avg_power = zeros(Float64, n ÷ 2)
+        avg_latent_acf = zeros(Float64, maxlag)
+        avg_latent_power = zeros(Float64, n ÷ 2)
         freqs = nothing
+        latent_freqs = nothing
         diagnostic_gen = nothing
+        has_latent = false
 
         for r in 1:replicates
             rng = StableRNG(seed + 10_000 * method_index + r)
             gen = factory()
             r == 1 && (diagnostic_gen = gen)
-            seq = generate(gen, n; rng)
+            if latent_diagnostics_available(gen)
+                seq, latent = generate_with_latent(gen, n; rng)
+                latent_acf, latent_f, latent_pxx =
+                    latent_numeric_diagnostics(latent; maxlag)
+                avg_latent_acf .+= latent_acf
+                avg_latent_power .+= latent_pxx
+                latent_freqs = latent_f
+                has_latent = true
+            else
+                seq = generate(gen, n; rng)
+            end
             if save_sequences
                 seqpath = joinpath(seqdir, "$(method)_$(lpad(r, 2, '0')).inc")
                 save_sequence(seqpath, seq, gen)
@@ -399,6 +510,10 @@ function run_lrd_diagnostics(; n::Int = DEFAULT_N,
 
         avg_acf ./= replicates
         avg_power ./= replicates
+        if has_latent
+            avg_latent_acf ./= replicates
+            avg_latent_power ./= replicates
+        end
         lags = collect(1:maxlag)
         b_lags, b_acf = logbin(lags, avg_acf; positive_y = true)
         b_freqs, b_power = logbin(freqs, avg_power; positive_y = true)
@@ -407,22 +522,56 @@ function run_lrd_diagnostics(; n::Int = DEFAULT_N,
         append_rows!(pxx_rows, method, "frequency", "power", freqs, avg_power)
         append_rows!(acf_plot_rows, method, "lag", "autocorrelation", b_lags, b_acf)
         append_rows!(pxx_plot_rows, method, "frequency", "power", b_freqs, b_power)
+        if has_latent
+            b_latent_lags, b_latent_acf =
+                logbin(lags, avg_latent_acf; positive_y = true)
+            b_latent_freqs, b_latent_power =
+                logbin(latent_freqs, avg_latent_power; positive_y = true)
+            append_rows!(latent_acf_rows, method, "lag", "autocorrelation",
+                         lags, avg_latent_acf)
+            append_rows!(latent_pxx_rows, method, "frequency", "power",
+                         latent_freqs, avg_latent_power)
+            append_rows!(latent_acf_plot_rows, method, "lag", "autocorrelation",
+                         b_latent_lags, b_latent_acf)
+            append_rows!(latent_pxx_plot_rows, method, "frequency", "power",
+                         b_latent_freqs, b_latent_power)
 
-        write_diagnostic_pair_svg(
-            joinpath(plotdir, "$(method)_diagnostics.svg"),
-            method,
-            b_lags,
-            b_acf,
-            b_freqs,
-            b_power;
-            acf_vertical_lines = acf_limit_annotations(diagnostic_gen, n),
-            spectrum_vertical_lines = spectrum_limit_annotations(diagnostic_gen, n),
-            acf_reference_lines = acf_power_law_reference(b_lags, b_acf,
-                                                          diagnostic_gen),
-            spectrum_reference_lines = spectrum_power_law_reference(b_freqs,
-                                                                    b_power,
-                                                                    diagnostic_gen),
-        )
+            write_property_diagnostic_svg(
+                joinpath(plotdir, "$(method)_diagnostics.svg"),
+                method,
+                b_latent_lags,
+                b_latent_acf,
+                b_latent_freqs,
+                b_latent_power,
+                b_lags,
+                b_acf,
+                b_freqs,
+                b_power;
+                acf_vertical_lines = acf_limit_annotations(diagnostic_gen, n),
+                spectrum_vertical_lines = spectrum_limit_annotations(diagnostic_gen, n),
+                acf_reference_lines = acf_power_law_reference(b_lags, b_acf,
+                                                              diagnostic_gen),
+                spectrum_reference_lines = spectrum_power_law_reference(b_freqs,
+                                                                        b_power,
+                                                                        diagnostic_gen),
+            )
+        else
+            write_diagnostic_pair_svg(
+                joinpath(plotdir, "$(method)_diagnostics.svg"),
+                method,
+                b_lags,
+                b_acf,
+                b_freqs,
+                b_power;
+                acf_vertical_lines = acf_limit_annotations(diagnostic_gen, n),
+                spectrum_vertical_lines = spectrum_limit_annotations(diagnostic_gen, n),
+                acf_reference_lines = acf_power_law_reference(b_lags, b_acf,
+                                                              diagnostic_gen),
+                spectrum_reference_lines = spectrum_power_law_reference(b_freqs,
+                                                                        b_power,
+                                                                        diagnostic_gen),
+            )
+        end
     end
 
     write_diagnostic_inc(
@@ -463,6 +612,46 @@ function run_lrd_diagnostics(; n::Int = DEFAULT_N,
             "method" => "S5 generator name",
             "frequency" => "geometric mean Fourier frequency in log bin",
             "power" => "binned mean periodogram",
+        ),
+    )
+    write_diagnostic_inc(
+        joinpath(outdir, "latent_average_autocorrelation.inc"),
+        latent_acf_rows,
+        "Average latent numerical autocorrelation by property-based generator",
+        Dict(
+            "method" => "S5 property-based generator name",
+            "lag" => "integer lag",
+            "autocorrelation" => "mean latent autocorrelation averaged across latent streams and replicates",
+        ),
+    )
+    write_diagnostic_inc(
+        joinpath(outdir, "latent_average_power_spectrum.inc"),
+        latent_pxx_rows,
+        "Average latent numerical power spectrum by property-based generator",
+        Dict(
+            "method" => "S5 property-based generator name",
+            "frequency" => "Fourier frequency",
+            "power" => "mean latent periodogram averaged across latent streams and replicates",
+        ),
+    )
+    write_diagnostic_inc(
+        joinpath(outdir, "latent_plot_autocorrelation_logbins.inc"),
+        latent_acf_plot_rows,
+        "Log-binned latent autocorrelation used for property-based SVG plots",
+        Dict(
+            "method" => "S5 property-based generator name",
+            "lag" => "geometric mean lag in log bin",
+            "autocorrelation" => "positive binned mean latent autocorrelation",
+        ),
+    )
+    write_diagnostic_inc(
+        joinpath(outdir, "latent_plot_power_spectrum_logbins.inc"),
+        latent_pxx_plot_rows,
+        "Log-binned latent power spectrum used for property-based SVG plots",
+        Dict(
+            "method" => "S5 property-based generator name",
+            "frequency" => "geometric mean Fourier frequency in log bin",
+            "power" => "binned mean latent periodogram",
         ),
     )
 

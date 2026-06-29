@@ -28,6 +28,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   future higher-order local-structure specifications.
 - `benchmark/benchmarks.jl` and `benchmark/Project.toml` for BenchmarkTools.jl
   performance studies across implemented generators.
+- Retained benchmark outputs under `benchmark/results/`, including CSV timings,
+  histogram-style relative-time SVGs, sequence-length scaling SVGs, and
+  `benchmark/RESULTS.md`.
+- A rare `S5_BENCHMARK_SCALING=true` benchmark mode for sequence-length scaling
+  studies over `n = 100` through `1_000_000`, using repeated independently
+  seeded syntheses per BenchmarkTools trial and deferring the `k = 64` case.
+- `generate_with_latent(g, n; rng)` for property-based generators, returning
+  both the symbolic sequence and the numerical latent process used before
+  symbolization.
 - `VALIDATION_POLICY.md` describing fast tests, manual validation studies, and
   opt-in large validation and benchmark runs.
 - Tests protecting the validation policy and benchmark infrastructure.
@@ -74,26 +83,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   generators with defensible onset scales, and documented MB4's weak
   power-spectrum behavior under the current finite Hawkes-style construction.
 - Removed the now-redundant status column from README method summary tables.
-- Extended the paper annotated bibliography with LRD surveys, numerical
-  synthesis methods, symbolic/categorical sequence references, recent language
-  and 2D self-similar-process papers, plus locally saved open PDFs and an
-  updated manual download list.
-- Added a paper `Makefile` and inlined the annotated bibliography into
-  `paper/s5_annotated_bibliography.tex` so the paper has a single LaTeX source
-  file with a meaningful filename.
 - `HawkesSymbol` as MB4, a finite-history discrete-time Hawkes-style symbolic
   generator with power-law self/cross-excitation over observed history.
 - Focused MB4 tests, INC provenance metadata, benchmark coverage, validation
   diagnostics, and documentation.
-- Audited manually downloaded paper references, distinguished exact, partial,
-  and alternative matches in `paper/DOWNLOAD.mn`, and corrected stale reference
-  metadata in the bibliography and README.
-- Expanded the paper bibliography's text and DNA application references, saved
-  additional open PDFs, and refreshed `paper/DOWNLOAD.mn` for remaining
-  application-focused sources.
-- Verified additional manually downloaded references, corrected the LAMP DOI,
-  added summaries for DNA/text application papers, and recorded candidate
-  future simulation-model families in the bibliography and TODO.
 - Added `IntermittentMapSymbols` (PB4), `CalibratedAdditiveMarkov` (MB1c),
   and `DuplicationMutation` (MB5), with provenance metadata, tests,
   benchmarks, validation coverage, and documentation.
@@ -108,23 +101,22 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added the uniform factory API `method_ids`, `method_info`, and
   `make_generator` so users can list methods, inspect standard parameters, and
   construct standard generator cases through one entry point.
+- Added `ParameterInfo` and `method_parameters` so factory methods can report
+  accepted keyword inputs, defaults, domains, and short descriptions.
 - Added a composable property-based API with `LatentSource`, `Symbolizer`, and
   `PropertyBasedGenerator`, plus spectral, Haar, intermittent-map, quantile,
   argmax, and Markov-regime building blocks for mix-and-match PB studies.
 - Replaced separate LRD validation autocorrelation and power-spectrum SVGs with
   paired diagnostics plots that show both panels side by side for each method.
+- Extended property-based validation plots and tables to include the numerical
+  latent generator diagnostics alongside the final symbolic diagnostics.
 - Expanded README, Documenter pages, validation notes, benchmark notes, and
   public docstrings with updated factory, PB4, MB1c, MB4, and MB5 examples.
 - Reorganized Documenter documentation into `Home`, `API`, `Validation and
   Benchmarks`, and `Reference` pages, with the raw docstring reference moved to
   the dedicated `Reference` page.
-- Verified five additional downloaded references, updated `paper/DOWNLOAD.mn`,
-  and expanded the annotated bibliography with source-matched summaries plus a
-  model-details section mapping literature models to S5.jl adaptations.
-- Moved downloaded reference papers out of the public repository into the
-  private sibling repository `../S4_downloads/`, removed public Git history for
-  `paper/downloads/` and `paper/references/`, and ignored those paths going
-  forward.
+- Removed `paper/` and `background/` from public version control while keeping
+  local files in the working tree, and ignored both directories going forward.
 
 ## [0.1.0] — 2026-06-04
 

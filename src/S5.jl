@@ -25,9 +25,11 @@ symbols for use as ground-truth test data in LRD estimation studies.
 # Common interface
 
     generate(g, n; rng = Random.default_rng()) -> Vector
+    generate_with_latent(g, n; rng)             -> (Vector, Matrix)
     make_generator(id, alphabet; kwargs...)     -> LRDGenerator
     method_ids()                                -> Tuple
     method_info(id)                             -> MethodInfo
+    method_parameters(id)                       -> Tuple
     save_sequence(filepath, seq, g; created)   -> filepath
 
 # Examples
@@ -50,8 +52,9 @@ using Random
 using Statistics: mean, std
 import IncCSV
 
-export LRDGenerator, generate, save_sequence
-export MethodInfo, method_ids, method_info, make_generator
+export LRDGenerator, generate, generate_with_latent, save_sequence
+export MethodInfo, ParameterInfo, method_ids, method_info, method_parameters
+export make_generator
 export LocalStructureSpec, MarkovSpec, local_structure_order
 export ControlCapabilities, control_capabilities
 export LatentSource, Symbolizer, PropertyBasedGenerator

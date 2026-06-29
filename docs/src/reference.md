@@ -11,9 +11,12 @@ LRDGenerator
 
 ```@docs
 generate
+generate_with_latent
 MethodInfo
+ParameterInfo
 method_ids
 method_info
+method_parameters
 make_generator
 save_sequence
 LocalStructureSpec

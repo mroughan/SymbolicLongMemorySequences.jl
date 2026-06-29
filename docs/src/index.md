@@ -20,6 +20,7 @@ seq = generate(g, 10_000; rng)
 
 method_ids()
 method_info(:PB1).defaults
+method_parameters(:PB1)
 empirical_marginal(seq, alphabet)
 
 # Save to INC format with full provenance metadata
@@ -30,9 +31,11 @@ Use `make_generator(id, alphabet; kwargs...)` for standard cases. The `id` may
 be a method identifier such as `:PB1`, a string such as `"MB1c"`, or an exported
 type-name alias such as `:SpectralFGN`. Use `method_ids()` to list methods and
 `method_info(id)` to inspect defaults, standard cases, and a short description.
-The method-specific constructors remain the precise API when you need full
-control over transition matrices, excitation matrices, or other scientific
-settings. See [API](@ref) for the clean construction and testing workflow.
+Use `method_parameters(id)` to inspect accepted factory keywords, default
+values, domains, and short descriptions. The method-specific constructors remain
+the precise API when you need full control over transition matrices, excitation
+matrices, or other scientific settings. See [API](@ref) for the clean
+construction and testing workflow.
 
 Property-based methods also have a composable pathway:
 

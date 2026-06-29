@@ -1,4 +1,37 @@
 """
+    ParameterInfo
+
+Metadata for one keyword accepted by [`make_generator`](@ref).
+
+Fields:
+- `name`: keyword name.
+- `kind`: currently `:keyword`; reserved for future input categories.
+- `default`: factory default value.
+- `domain`: concise domain or accepted-value summary.
+- `description`: short human-readable explanation.
+
+# Examples
+```julia
+julia> p = method_parameters(:PB1)[1]
+ParameterInfo(name=H, default=0.8)
+
+julia> p.domain
+"0.5 < H < 1"
+```
+"""
+struct ParameterInfo
+    name        :: Symbol
+    kind        :: Symbol
+    default     :: Any
+    domain      :: String
+    description :: String
+end
+
+function Base.show(io::IO, p::ParameterInfo)
+    print(io, "ParameterInfo(name=$(p.name), default=$(p.default))")
+end
+
+"""
     MethodInfo
 
 Metadata returned by [`method_info`](@ref) for one S5 synthesis method.
@@ -8,6 +41,7 @@ Fields:
 - `family`: `:property_based` or `:model_based`.
 - `type_name`: exported generator type name.
 - `defaults`: standard-case keyword defaults used by [`make_generator`](@ref).
+- `parameters`: keyword metadata for the factory inputs accepted by this method.
 - `standard_cases`: named construction presets accepted by [`make_generator`](@ref).
 - `description`: short human-readable summary.
 
@@ -18,6 +52,9 @@ MethodInfo(id=PB1, type=SpectralFGN)
 
 julia> info.defaults.H
 0.8
+
+julia> method_parameters(:PB1)[1].name
+:H
 ```
 """
 struct MethodInfo
@@ -25,6 +62,7 @@ struct MethodInfo
     family         :: Symbol
     type_name      :: Symbol
     defaults       :: NamedTuple
+    parameters     :: Tuple
     standard_cases :: Tuple
     description    :: String
 end
@@ -85,58 +123,192 @@ function method_ids(; family::Symbol = :all)
     end
 end
 
+function _param(name::Symbol, default, domain::AbstractString,
+                description::AbstractString)
+    return ParameterInfo(name, :keyword, default, String(domain), String(description))
+end
+
+function _common_marginal(default = :uniform)
+    return _param(:marginal, default,
+                  "`:uniform` or a probability vector with one entry per symbol",
+                  "Target marginal distribution when the method has a marginal-control knob.")
+end
+
+function _common_case(default, accepted)
+    return _param(:case, default, accepted,
+                  "Named standard construction case used when detailed matrices are omitted.")
+end
+
 function _method_info_table()
     (
         PB1 = MethodInfo(:PB1, :property_based, :SpectralFGN,
                          (; H = 0.8, marginal = :uniform),
+                         (_param(:H, 0.8, "0.5 < H < 1",
+                                 "Nominal Hurst parameter for the latent fGn-like process."),
+                          _common_marginal()),
                          (:standard,),
                          "Approximate spectral fGn followed by rank quantization."),
         PB2 = MethodInfo(:PB2, :property_based, :LGCM,
                          (; H = 0.8, marginal = :uniform,
                             calibration_iters = 25, calibration_rate = 0.7),
+                         (_param(:H, 0.8, "0.5 < H < 1",
+                                 "Nominal Hurst parameter for each latent Gaussian channel."),
+                          _common_marginal(),
+                          _param(:calibration_iters, 25, "integer >= 0",
+                                 "Number of empirical marginal-calibration iterations."),
+                          _param(:calibration_rate, 0.7, "0 <= calibration_rate <= 1",
+                                 "Damping applied during empirical threshold calibration.")),
                          (:standard,),
                          "Latent Gaussian categorical model with marginal calibration."),
         PB3 = MethodInfo(:PB3, :property_based, :WaveletMarkov,
-                         (; H = 0.8, driver = :spectral, case = :persistent_regimes),
+                         (; H = 0.8, marginal = :uniform, transition_matrices = nothing,
+                            regime_weights = nothing, cascade_depth = 0,
+                            driver = :spectral, case = :persistent_regimes),
+                         (_param(:H, 0.8, "0.5 < H < 1",
+                                 "Nominal Hurst parameter for the latent regime driver."),
+                          _common_marginal(),
+                          _param(:transition_matrices, nothing,
+                                 "`nothing` or a vector of stochastic matrices",
+                                 "Regime-specific Markov transition matrices."),
+                          _param(:regime_weights, nothing,
+                                 "`nothing` or a probability vector",
+                                 "Stationary regime weights used to choose latent regimes."),
+                          _param(:cascade_depth, 0, "integer >= 0",
+                                 "Optional Haar-cascade refinement depth for the driver."),
+                          _param(:driver, :spectral, "`:spectral` or `:haar`",
+                                 "Numerical LRD driver used before Markov symbolization."),
+                          _common_case(:persistent_regimes,
+                                       "`:persistent_regimes` or `:iid_regimes`")),
                          (:persistent_regimes, :iid_regimes),
                          "Latent LRD regime driver selecting Markov transition matrices."),
         PB4 = MethodInfo(:PB4, :property_based, :IntermittentMapSymbols,
                          (; z = 1.6, marginal = :uniform, burnin = 1000),
+                         (_param(:z, 1.6, "1 < z < 2",
+                                 "Intermittency parameter controlling nominal long memory."),
+                          _common_marginal(),
+                          _param(:burnin, 1000, "integer >= 0",
+                                 "Number of latent map iterations discarded before sampling.")),
                          (:standard,),
                          "Intermittent latent map followed by rank quantization."),
         MB1a = MethodInfo(:MB1a, :model_based, :LAMP,
                           (; beta = 0.5, marginal = :uniform, d = 1000,
-                             epsilon = 0.02, repeat_probability = 0.9),
+                             epsilon = 0.02, transition_matrix = nothing,
+                             repeat_probability = 0.9, case = :repeat),
+                          (_param(:beta, 0.5, "0 < beta < 1",
+                                  "Power-law memory exponent for finite-history weights."),
+                           _common_marginal(),
+                           _param(:d, 1000, "integer >= 1",
+                                  "Explicit finite history cutoff."),
+                           _param(:epsilon, 0.02, "0 <= epsilon <= 1",
+                                  "Mixture weight for the innovation component."),
+                           _param(:transition_matrix, nothing,
+                                  "`nothing` or a stochastic matrix",
+                                  "Local transition matrix used by the LAMP mechanism."),
+                           _param(:repeat_probability, 0.9, "0 <= repeat_probability <= 1",
+                                  "Persistence level for the standard repeat case."),
+                           _common_case(:repeat, "`:repeat`, `:persistent`, or `:iid`")),
                           (:repeat, :iid),
                           "Exact finite-history LAMP with power-law history weights."),
         MB1b = MethodInfo(:MB1b, :model_based, :DyadicLAMP,
                           (; beta = 0.5, marginal = :uniform, d = 100_000,
-                             epsilon = 0.02, repeat_probability = 0.9),
+                             epsilon = 0.02, transition_matrix = nothing,
+                             repeat_probability = 0.9, case = :repeat),
+                          (_param(:beta, 0.5, "0 < beta < 1",
+                                  "Power-law memory exponent for dyadic history weights."),
+                           _common_marginal(),
+                           _param(:d, 100_000, "integer >= 1",
+                                  "Maximum represented history depth."),
+                           _param(:epsilon, 0.02, "0 <= epsilon <= 1",
+                                  "Mixture weight for the innovation component."),
+                           _param(:transition_matrix, nothing,
+                                  "`nothing` or a stochastic matrix",
+                                  "Local transition matrix used by the dyadic LAMP mechanism."),
+                           _param(:repeat_probability, 0.9, "0 <= repeat_probability <= 1",
+                                  "Persistence level for the standard repeat case."),
+                           _common_case(:repeat, "`:repeat`, `:persistent`, or `:iid`")),
                           (:repeat, :iid),
                           "Scalable dyadic-bucket approximation to LAMP."),
         MB1c = MethodInfo(:MB1c, :model_based, :CalibratedAdditiveMarkov,
                           (; beta = 0.5, marginal = :uniform, d = 1000,
-                             strength = 0.8),
+                             strength = 0.8, case = :standard),
+                          (_param(:beta, 0.5, "0 < beta < 1",
+                                  "Power-law exponent for the centered additive memory kernel."),
+                           _common_marginal(),
+                           _param(:d, 1000, "integer >= 1",
+                                  "Explicit finite memory cutoff."),
+                           _param(:strength, 0.8, "0 <= strength <= 1",
+                                  "Dependence strength in the standard case."),
+                           _common_case(:standard, "`:standard` or `:iid`")),
                           (:standard, :iid),
                           "Centered additive Markov memory function."),
         MB2 = MethodInfo(:MB2, :model_based, :OnOffMarkov,
-                         (; alpha = 1.4, L_min = 50.0,
-                            case = :persistent_regimes),
+                         (; alpha = 1.4, marginal = :uniform,
+                            transition_matrices = nothing, switching_matrix = nothing,
+                            L_min = 50.0, case = :persistent_regimes),
+                         (_param(:alpha, 1.4, "1 < alpha < 2",
+                                 "Tail exponent for regime holding times."),
+                          _common_marginal(),
+                          _param(:transition_matrices, nothing,
+                                 "`nothing` or a vector of stochastic matrices",
+                                 "Regime-specific Markov transition matrices."),
+                          _param(:switching_matrix, nothing,
+                                 "`nothing` or a stochastic matrix",
+                                 "Transition matrix for regime switches."),
+                          _param(:L_min, 50.0, "L_min > 0",
+                                 "Minimum scale for heavy-tailed holding times."),
+                          _common_case(:persistent_regimes,
+                                       "`:persistent_regimes` or `:iid_regimes`")),
                          (:persistent_regimes, :iid_regimes),
                          "Heavy-tailed regime-switching Markov chain."),
         MB3 = MethodInfo(:MB3, :model_based, :FSS,
-                         (; alpha = 1.4, rates = :uniform, x_min = 1.0),
+                         (; alpha = 1.4, marginal = nothing,
+                            rates = :uniform, x_min = 1.0),
+                         (_param(:alpha, 1.4, "1 < alpha < 2",
+                                 "Tail exponent for renewal durations."),
+                          _param(:marginal, nothing,
+                                 "`nothing` or a positive vector used as renewal rates",
+                                 "Compatibility alias for `rates`; not a direct marginal guarantee."),
+                          _param(:rates, :uniform,
+                                 "`:uniform` or a positive vector with one entry per symbol",
+                                 "Relative symbol renewal rates."),
+                          _param(:x_min, 1.0, "x_min > 0",
+                                 "Minimum Pareto renewal duration.")),
                          (:standard,),
                          "Fractal symbol sequence via independent Pareto renewals."),
         MB4 = MethodInfo(:MB4, :model_based, :HawkesSymbol,
-                         (; beta = 0.6, baseline = :uniform, excitation = :identity,
-                            d = 1000, c = 1.0),
+                         (; beta = 0.6, marginal = nothing, baseline = :uniform,
+                            excitation = :identity, d = 1000, c = 1.0),
+                         (_param(:beta, 0.6, "0 < beta < 1",
+                                 "Power-law exponent for finite-history excitation decay."),
+                          _param(:marginal, nothing,
+                                 "`nothing` or a positive vector used as baseline intensities",
+                                 "Compatibility alias for `baseline`; not exact marginal control."),
+                          _param(:baseline, :uniform,
+                                 "`:uniform` or a positive vector with one entry per symbol",
+                                 "Baseline symbol intensities."),
+                          _param(:excitation, :identity,
+                                 "`:identity` or a nonnegative matrix",
+                                 "Symbol-to-symbol self-excitation matrix."),
+                          _param(:d, 1000, "integer >= 1",
+                                 "Explicit finite history cutoff."),
+                          _param(:c, 1.0, "c > 0",
+                                 "Scale parameter for the excitation kernel.")),
                          (:identity_excitation,),
                          "Finite-history Hawkes-style symbolic self-excitation."),
         MB5 = MethodInfo(:MB5, :model_based, :DuplicationMutation,
                          (; alpha = 1.4, marginal = :uniform,
                             mutation_probability = 0.02, seed_length = 64,
                             max_block_length = 4096),
+                         (_param(:alpha, 1.4, "1 < alpha < 2",
+                                 "Tail exponent for power-law copy distances."),
+                          _common_marginal(),
+                          _param(:mutation_probability, 0.02,
+                                 "0 <= mutation_probability <= 1",
+                                 "Probability of replacing copied symbols with innovations."),
+                          _param(:seed_length, 64, "integer >= 1",
+                                 "Initial iid prefix length."),
+                          _param(:max_block_length, 4096, "integer >= 1",
+                                 "Maximum contiguous copy block length.")),
                          (:standard,),
                          "Power-law lag copy-and-mutate symbolic growth."),
     )
@@ -171,6 +343,29 @@ end
 function method_info()
     table = _method_info_table()
     return tuple((getproperty(table, id) for id in _METHOD_IDS)...)
+end
+
+"""
+    method_parameters(id) -> Tuple{Vararg{ParameterInfo}}
+
+Return keyword metadata for the factory inputs accepted by one method.
+
+This is a discovery helper for user interfaces, examples, and benchmark grids.
+All methods still require the positional `alphabet` input to
+[`make_generator`](@ref), and sequence length `n` is supplied later to
+[`generate`](@ref).
+
+# Examples
+```julia
+julia> first(method_parameters(:PB1)).name
+:H
+
+julia> any(p -> p.name === :mutation_probability, method_parameters(:MB5))
+true
+```
+"""
+function method_parameters(id)
+    return method_info(id).parameters
 end
 
 function _uniform_probs(alphabet)

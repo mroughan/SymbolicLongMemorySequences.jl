@@ -16,6 +16,16 @@ seq = generate(g, n; rng)
 
 Always pass an explicit `rng` when a sequence needs to be reproducible.
 
+Property-based generators also support an additive validation helper:
+
+```julia
+seq, latent = generate_with_latent(g, n; rng)
+```
+
+`latent` is a `width × n` numerical matrix containing the LRD driver before
+symbolization. Use this when a study needs to diagnose the numerical source and
+the symbolic transform separately.
+
 ## Standard Method Factory
 
 The factory is the cleanest way to list methods, inspect their standard
@@ -57,8 +67,27 @@ Use `method_ids` and `method_info` to discover supported methods:
 method_ids()
 method_ids(family = :model_based)
 method_info(:MB5).defaults
+method_parameters(:MB5)
 method_info(:SpectralFGN).id
 ```
+
+The entries returned by `method_parameters(id)` describe the factory keywords
+accepted by that method:
+
+```julia
+[(p.name, p.default, p.domain) for p in method_parameters(:PB1)]
+```
+
+Example output:
+
+```julia
+2-element Vector{Tuple{Symbol, Any, String}}:
+ (:H, 0.8, "0.5 < H < 1")
+ (:marginal, :uniform, "`:uniform` or a probability vector with one entry per symbol")
+```
+
+All factory methods also require the positional `alphabet` input. The generated
+sequence length `n` is supplied later through `generate(g, n; rng)`.
 
 Factory defaults are standard examples, not finite-sample scientific
 calibrations. For validation studies that support method-specific claims, prefer
@@ -159,6 +188,19 @@ g = PropertyBasedGenerator(source, symbolizer)
 
 Use the composable API when the study is about transformations. Use
 `make_generator` when the study only needs a standard named method.
+
+To inspect the numerical driver used by a property-based generator:
+
+```julia
+seq, latent = generate_with_latent(g, 8; rng = StableRNG(42))
+size(latent)
+```
+
+Example output:
+
+```julia
+(1, 8)
+```
 
 ## Explicit Constructors
 

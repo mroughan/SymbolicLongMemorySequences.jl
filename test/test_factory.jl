@@ -14,10 +14,26 @@
         @test info.type_name == :DuplicationMutation
         @test info.family == :model_based
         @test :alpha in keys(info.defaults)
+        @test info.parameters === method_parameters(:MB5)
+        @test method_parameters(:DuplicationMutation) === info.parameters
+        @test any(p -> p.name === :mutation_probability &&
+                       occursin("probability", lowercase(p.description)),
+                  method_parameters(:MB5))
+        @test first(method_parameters(:PB1)).name == :H
+        @test first(method_parameters(:PB1)).domain == "0.5 < H < 1"
+        for id in ids
+            info = method_info(id)
+            parameter_names = Set(p.name for p in info.parameters)
+            @test issubset(Set(keys(info.defaults)), parameter_names)
+            @test all(p.kind === :keyword for p in info.parameters)
+            @test all(!isempty(p.domain) for p in info.parameters)
+            @test all(!isempty(p.description) for p in info.parameters)
+        end
         @test method_info("PB1").type_name == :SpectralFGN
         @test method_info(:SpectralFGN).id == :PB1
         @test length(method_info()) == length(ids)
         @test_throws ArgumentError method_info(:NoSuchMethod)
+        @test_throws ArgumentError method_parameters(:NoSuchMethod)
     end
 
     @testset "construct standard cases" begin

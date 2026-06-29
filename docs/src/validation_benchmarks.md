@@ -25,7 +25,7 @@ meaningful.
 ## Manual Validation Studies
 
 Manual validation scripts live in `validation/`. They use reproducible RNGs and
-may write aggregate result tables or SVG plots.
+may write aggregate result tables or SVG/PDF plots.
 
 ```julia
 julia --project=. validation/marginal_control.jl
@@ -60,8 +60,10 @@ generators, but they do not generally have a simple aggregate Markov target.
 ## LRD Method Diagnostics
 
 `validation/lrd_method_diagnostics.jl` creates one-hot symbol diagnostics for all
-implemented methods. Each symbol sequence is transformed into centered indicator
-series before autocorrelation, autocovariance, or periodogram calculations:
+implemented methods. Property-based methods additionally report diagnostics for
+the numerical latent process returned by `generate_with_latent`. Each symbol
+sequence is transformed into centered indicator series before autocorrelation,
+autocovariance, or periodogram calculations:
 
 ```julia
 x_t = 1{X_t = symbol} - mean(1{X_t = symbol})
@@ -74,10 +76,19 @@ The script writes:
 
 - `average_autocorrelation.inc`;
 - `average_power_spectrum.inc`;
+- `latent_average_autocorrelation.inc`;
+- `latent_average_power_spectrum.inc`;
 - `plot_autocorrelation_logbins.inc`;
 - `plot_power_spectrum_logbins.inc`;
+- `latent_plot_autocorrelation_logbins.inc`;
+- `latent_plot_power_spectrum_logbins.inc`;
 - paired SVG plots under `validation/results/lrd_diagnostics/plots/`, with
-  autocorrelation on the left and power spectrum on the right.
+  autocorrelation on the left and power spectrum on the right. If
+  `rsvg-convert` is available, PDF copies are written for paper inclusion.
+
+For property-based methods the SVG/PDF plots have four panels: latent
+autocorrelation, latent power spectrum, symbolic autocorrelation, and symbolic
+power spectrum. This makes the transformation loss or distortion visible.
 
 Autocorrelation plots include a vertical dashed finite-sample interpretation
 limit at lag `n / 10`. Methods with explicit finite memory, such as `LAMP`,
@@ -143,13 +154,38 @@ lengths and alphabet sizes. Larger runs are opt-in:
 S5_BENCHMARK_LARGE=true julia --project=benchmark benchmark/benchmarks.jl
 ```
 
+Rare scaling runs are also opt-in:
+
+```julia
+S5_BENCHMARK_SCALING=true julia --project=benchmark benchmark/benchmarks.jl
+```
+
+The scaling suite uses `n = 100, 1_000, 10_000, 100_000, 1_000_000`, defers
+`k = 64`, and runs `k = 2, 8`. Each BenchmarkTools trial synthesizes 10
+independently seeded sequences by default, and retained times are reported as
+per-synthesis averages.
+
 Additional knobs:
 
 - `S5_BENCHMARK_SAMPLES=<integer>`;
-- `S5_BENCHMARK_SECONDS=<seconds>`.
+- `S5_BENCHMARK_SECONDS=<seconds>`;
+- `S5_BENCHMARK_SYNTH_REPEATS=<integer>`;
+- `S5_BENCHMARK_WRITE_RESULTS=false` to suppress retained result artifacts.
+
+By default the benchmark script writes:
+
+- `benchmark/RESULTS.md`, a machine-specific summary;
+- `benchmark/results/benchmarks.csv`, with one row per method, `k`, and `n`;
+- histogram-style relative-time SVGs for the largest benchmarked `n`;
+- log-log scaling SVGs for each alphabet size.
 
 Benchmark labels include complexity-relevant settings such as `k`, `d`, stream
 count for `FSS`, copy-distance settings for `DuplicationMutation`, and
 FFT/rank-binning behavior for property-based methods. Interpret benchmark
 results as machine- and Julia-version-specific performance evidence, not as
 platform-independent speed guarantees.
+
+The retained scaling run shows the expected separation between generator
+families: direct sequential methods are fastest, FFT/rank-binning methods scale
+well with sequence length, `LGCM` grows with alphabet size, and explicit
+history-based methods pay for their configured memory depth.

@@ -81,6 +81,11 @@ local log-log slope reaches a chosen fraction of the asymptotic slope.
 
 Benchmarks are performance evidence, not correctness tests. They live under
 `benchmark/` and use their own `Project.toml` with `BenchmarkTools.jl`.
+Retained benchmark results should include a machine-specific summary, a
+machine-readable table, and plots that make relative timing and scaling with
+sequence length visible. Rare scaling studies should be opt-in, may use much
+larger `n`, and should average each reported timing over multiple independently
+seeded syntheses rather than relying on a single generated sequence.
 
 Run the default benchmark suite from the package root:
 
@@ -92,6 +97,7 @@ The default suite should remain moderate. Larger benchmark runs are opt-in:
 
 ```julia
 S5_BENCHMARK_LARGE=true julia --project=benchmark benchmark/benchmarks.jl
+S5_BENCHMARK_SCALING=true julia --project=benchmark benchmark/benchmarks.jl
 ```
 
 Benchmark results should be interpreted as machine- and Julia-version-specific.

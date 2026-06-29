@@ -103,6 +103,43 @@ function generate(g::LGCM, n::Int; rng::AbstractRNG = Random.default_rng())
     return result
 end
 
+"""
+    generate_with_latent(g::LGCM, n; rng) -> sequence, latent
+
+Generate `n` symbols and return the `k × n` latent fGn matrix used by the
+calibrated argmax transform.
+
+# Examples
+```julia
+julia> g = LGCM(0.75, [:a, :b]; calibration_iters = 2);
+julia> seq, latent = generate_with_latent(g, 16; rng = MersenneTwister(1));
+julia> length(seq), size(latent)
+(16, (2, 16))
+```
+"""
+function generate_with_latent(g::LGCM, n::Int;
+                              rng::AbstractRNG = Random.default_rng())
+    n ≥ 4 || throw(ArgumentError(
+        "LGCM requires n ≥ 4 (for latent fGn synthesis), got $n"))
+
+    k = length(g.alphabet)
+    latent = Matrix{Float64}(undef, k, n)
+    @inbounds for i in 1:k
+        latent[i, :] .= _fgn_spectral(n, g.H, rng)
+    end
+
+    offsets = log.(g.marginal .+ eps(Float64))
+    _calibrate_lgcm_offsets!(offsets, latent, g.marginal,
+                             g.calibration_iters, g.calibration_rate)
+
+    result = Vector{eltype(g.alphabet)}(undef, n)
+    @inbounds for t in 1:n
+        idx = _argmax_with_offsets(latent, offsets, t)
+        result[t] = g.alphabet[idx]
+    end
+    return result, latent
+end
+
 function _calibrate_lgcm_offsets!(offsets::Vector{Float64},
                                   latent::Matrix{Float64},
                                   target::Vector{Float64},

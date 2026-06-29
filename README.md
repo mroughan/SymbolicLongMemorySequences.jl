@@ -95,11 +95,14 @@ seq = generate(g, 10_000; rng = StableRNG(42))
 
 method_ids()
 method_info(:PB1).defaults
+method_parameters(:PB1)
 ```
 
 `make_generator(id, alphabet; kwargs...)` accepts IDs such as `:PB1`, `"MB1c"`,
 or type-name aliases such as `:SpectralFGN`. It is intended for common starting
-points; the explicit constructors below remain the full-control API.
+points. Use `method_parameters(id)` to inspect accepted keyword names, defaults,
+domains, and short descriptions. The explicit constructors below remain the
+full-control API.
 
 ### Property-Based Methods
 
@@ -119,6 +122,18 @@ makes the latent-source/symbolization split explicit, while still checking
 compatibility at construction time. For example, a quantile symbolizer needs one
 latent series, an argmax symbolizer needs one latent series per symbol, and an
 intermittent-map source is currently single-stream only.
+
+For validation and research workflows, property-based generators also expose the
+numerical process before symbolization:
+
+```julia
+seq, latent = generate_with_latent(g, 10_000; rng = StableRNG(42))
+size(latent)  # width × n
+```
+
+This is useful when a symbolic diagnostic looks weak: the latent ACF and spectrum
+can be checked separately from the quantization, argmax, or Markov-regime
+transformation.
 
 | Named method | Latent source | Symbolizer |
 |--------------|---------------|------------|
@@ -331,7 +346,18 @@ BenchmarkTools.jl:
 ```julia
 julia --project=benchmark benchmark/benchmarks.jl
 S5_BENCHMARK_LARGE=true julia --project=benchmark benchmark/benchmarks.jl
+S5_BENCHMARK_SCALING=true julia --project=benchmark benchmark/benchmarks.jl
 ```
+
+The default benchmark run writes `benchmark/RESULTS.md`, a CSV table under
+`benchmark/results/benchmarks.csv`, histogram-style relative-time SVGs, and
+log-log scaling plots by alphabet size. The retained scaling results use
+`n = 100, 1_000, 10_000, 100_000, 1_000_000`, defer `k = 64`, and average each
+BenchmarkTools trial over 10 independently seeded syntheses. They show the
+expected cost split: direct sequential methods such as `OnOffMarkov`, `FSS`, and
+`DuplicationMutation` are fastest, FFT/rank-binning methods scale well with `n`,
+`LGCM` grows with alphabet size, and explicit history methods such as `LAMP`,
+`HawkesSymbol`, and `DyadicLAMP` pay for their configured memory depth.
 
 First-order local-structure controls use `MarkovSpec`. Trigram diagnostics are
 available through `empirical_trigram`, but a concrete trigram-control

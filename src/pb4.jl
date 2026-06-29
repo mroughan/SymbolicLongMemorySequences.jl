@@ -100,3 +100,25 @@ function generate(g::IntermittentMapSymbols, n::Int;
     end
     return quantize_to_symbols(driver, g.alphabet, g.marginal)
 end
+
+"""
+    generate_with_latent(g::IntermittentMapSymbols, n; rng) -> sequence, latent
+
+Generate `n` symbols and return the one-row intermittent-map driver matrix used
+before quantization.
+
+# Examples
+```julia
+julia> g = IntermittentMapSymbols(1.6, [:a, :b]; burnin = 10);
+julia> seq, latent = generate_with_latent(g, 16; rng = MersenneTwister(1));
+julia> length(seq), size(latent)
+(16, (1, 16))
+```
+"""
+function generate_with_latent(g::IntermittentMapSymbols, n::Int;
+                              rng::AbstractRNG = Random.default_rng())
+    n ≥ 4 || throw(ArgumentError(
+        "IntermittentMapSymbols requires n ≥ 4 for rank binning, got $n"))
+    latent = generate_latent(IntermittentMapSource(g.z; burnin = g.burnin), n, 1; rng)
+    return quantize_to_symbols(vec(@view latent[1, :]), g.alphabet, g.marginal), latent
+end

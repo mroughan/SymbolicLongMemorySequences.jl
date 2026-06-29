@@ -468,6 +468,37 @@ function generate(g::PropertyBasedGenerator, n::Int;
     return symbolize(g.symbolizer, latent; rng)
 end
 
+"""
+    generate_with_latent(g, n; rng) -> sequence, latent
+
+Generate a property-based symbolic sequence and return the numerical latent
+series used before symbolization.
+
+The returned `latent` value is a `width × n` matrix, where `width` is
+[`latent_width`](@ref) of the symbolizer. This helper is intended for
+validation and research workflows where the numerical long-memory driver should
+be diagnosed alongside the final symbolic sequence. It is additive to the common
+[`generate`](@ref) contract; ordinary callers can continue to use
+`generate(g, n; rng)`.
+
+# Examples
+```julia
+julia> g = PropertyBasedGenerator(SpectralFGNSource(0.75),
+...                               QuantileSymbolizer([:a, :b]));
+
+julia> seq, latent = generate_with_latent(g, 16; rng = MersenneTwister(1));
+
+julia> length(seq), size(latent)
+(16, (1, 16))
+```
+"""
+function generate_with_latent(g::PropertyBasedGenerator, n::Int;
+                              rng::AbstractRNG = Random.default_rng())
+    width = latent_width(g.symbolizer)
+    latent = generate_latent(g.source, n, width; rng)
+    return symbolize(g.symbolizer, latent; rng), latent
+end
+
 _supports_latent_width(::SpectralFGNSource, width::Int) = width ≥ 1
 _supports_latent_width(::HaarLRDSource, width::Int) = width ≥ 1
 _supports_latent_width(::IntermittentMapSource, width::Int) = width == 1

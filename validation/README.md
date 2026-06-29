@@ -117,11 +117,22 @@ sequence, averages across symbols and replicates, and writes:
 - `plot_autocorrelation_logbins.inc`: positive log-binned values used for plotting;
 - `plot_power_spectrum_logbins.inc`: log-binned spectrum values used for plotting.
 
+For property-based methods, the script calls `generate_with_latent` and also
+writes:
+
+- `latent_average_autocorrelation.inc`: full latent numerical autocorrelation;
+- `latent_average_power_spectrum.inc`: full latent numerical periodogram;
+- `latent_plot_autocorrelation_logbins.inc`: log-binned latent ACF values;
+- `latent_plot_power_spectrum_logbins.inc`: log-binned latent spectrum values.
+
 The log-binning code keeps the final bin closed only at its upper edge and sorts
 the binned x-values before writing tables and SVG polylines, so plot x-values are
 strictly increasing within each method. Paired log-log SVG plots are written
 under `validation/results/lrd_diagnostics/plots/`, with autocorrelation on the
-left and power spectrum on the right.
+left and power spectrum on the right. Property-based plots have two rows: the
+latent numerical process on top and the final symbolic one-hot diagnostics on
+the bottom. If `rsvg-convert` is installed, matching PDF files are produced for
+paper inclusion.
 
 The SVG plots include vertical dashed interpretation limits. The red line marks
 the finite-sample lag limit `n / 10`, chosen so autocorrelation estimates are not
@@ -184,3 +195,16 @@ Run the larger opt-in suite with:
 ```julia
 S5_BENCHMARK_LARGE=true julia --project=benchmark benchmark/benchmarks.jl
 ```
+
+Run the rare sequence-length scaling suite with:
+
+```julia
+S5_BENCHMARK_SCALING=true julia --project=benchmark benchmark/benchmarks.jl
+```
+
+The benchmark script writes `../benchmark/RESULTS.md`, CSV results, and SVG
+plots by default. The relative-time plots are histogram-style bars normalized to
+the fastest method for each alphabet size at the largest benchmarked sequence
+length. The scaling plots show generation time against sequence length on
+log-log axes. The retained scaling run uses 10 independently seeded syntheses
+inside each BenchmarkTools trial and reports per-synthesis average times.

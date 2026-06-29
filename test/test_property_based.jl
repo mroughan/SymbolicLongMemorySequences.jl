@@ -44,6 +44,10 @@
               bin_counts(marginal, length(seq))
         @test generate(g, 128; rng = StableRNG(911)) ==
               generate(g, 128; rng = StableRNG(911))
+
+        seq2, latent = generate_with_latent(g, 128; rng = StableRNG(911))
+        @test seq2 == generate(g, 128; rng = StableRNG(911))
+        @test size(latent) == (1, 128)
     end
 
     @testset "spectral source with argmax symbolizer" begin
@@ -56,6 +60,10 @@
         @test length(seq) == 10_000
         @test all(s in alphabet for s in seq)
         @test total_variation(empirical_marginal(seq, alphabet), marginal) < 0.04
+
+        seq2, latent = generate_with_latent(g, 512; rng = StableRNG(912))
+        @test seq2 == generate(g, 512; rng = StableRNG(912))
+        @test size(latent) == (length(alphabet), 512)
     end
 
     @testset "latent generation and direct symbolization" begin
@@ -81,6 +89,10 @@
         @test target_marginal(g) ≈ 0.4 .* stationary_distribution(P1) .+
                                   0.6 .* stationary_distribution(P2)
         @test control_capabilities(g).bigram == :per_regime
+
+        seq2, latent = generate_with_latent(g, 256; rng = StableRNG(915))
+        @test seq2 == generate(g, 256; rng = StableRNG(915))
+        @test size(latent) == (1, 256)
     end
 
     @testset "intermittent source with quantile symbolizer" begin
@@ -93,6 +105,26 @@
         @test eltype(seq) == Char
         @test [count(==(s), seq) for s in ('A', 'B')] ==
               bin_counts(marginal, length(seq))
+    end
+
+    @testset "named property-based latent output" begin
+        alphabet = [:a, :b]
+        P = [0.8 0.2; 0.3 0.7]
+        generators = (
+            SpectralFGN(0.75, alphabet),
+            LGCM(0.75, alphabet; calibration_iters = 2),
+            WaveletMarkov(0.75, alphabet, [P, P]),
+            IntermittentMapSymbols(1.6, alphabet; burnin = 5),
+        )
+
+        for (i, g) in enumerate(generators)
+            n = 64
+            seq, latent = generate_with_latent(g, n; rng = StableRNG(930 + i))
+            @test seq == generate(g, n; rng = StableRNG(930 + i))
+            @test length(seq) == n
+            @test size(latent, 2) == n
+            @test size(latent, 1) == (g isa LGCM ? length(alphabet) : 1)
+        end
     end
 
 end

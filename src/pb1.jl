@@ -85,6 +85,29 @@ function generate(g::SpectralFGN, n::Int; rng::AbstractRNG = Random.default_rng(
 end
 
 """
+    generate_with_latent(g::SpectralFGN, n; rng) -> sequence, latent
+
+Generate `n` symbols and return the one-row latent fGn matrix used before
+quantization.
+
+# Examples
+```julia
+julia> g = SpectralFGN(0.75, [:a, :b]);
+julia> seq, latent = generate_with_latent(g, 16; rng = MersenneTwister(1));
+julia> length(seq), size(latent)
+(16, (1, 16))
+```
+"""
+function generate_with_latent(g::SpectralFGN, n::Int;
+                              rng::AbstractRNG = Random.default_rng())
+    n ≥ 4 || throw(ArgumentError(
+        "SpectralFGN requires n ≥ 4 (at least one interior FFT frequency), got $n"))
+    x = _fgn_spectral(n, g.H, rng)
+    latent = reshape(x, 1, :)
+    return quantize_to_symbols(x, g.alphabet, g.marginal), latent
+end
+
+"""
     _fgn_spectral(n, H, rng) -> Vector{Float64}
 
 Generate length-`n` fractional Gaussian noise with Hurst parameter `H` using

@@ -9,9 +9,9 @@ Manifest.toml
 # Generated validation data
 /validation/results/lrd_diagnostics/sequences/
 
-# Private reference-paper storage lives outside this public repository.
-/paper/downloads/
-/paper/references/
+# Local research notes and drafts are kept outside public version control.
+/paper/
+/background/
 
 # OS
 .DS_Store

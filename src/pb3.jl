@@ -150,6 +150,40 @@ function generate(g::WaveletMarkov, n::Int; rng::AbstractRNG = Random.default_rn
     return result
 end
 
+"""
+    generate_with_latent(g::WaveletMarkov, n; rng) -> sequence, latent
+
+Generate `n` symbols and return the one-row latent regime-driver matrix used
+before rank-binning into Markov regimes.
+
+# Examples
+```julia
+julia> P = [0.9 0.1; 0.2 0.8];
+julia> g = WaveletMarkov(0.75, [:a, :b], [P, P]);
+julia> seq, latent = generate_with_latent(g, 16; rng = MersenneTwister(1));
+julia> length(seq), size(latent)
+(16, (1, 16))
+```
+"""
+function generate_with_latent(g::WaveletMarkov, n::Int;
+                              rng::AbstractRNG = Random.default_rng())
+    n ≥ 2 || throw(ArgumentError("n must be ≥ 2, got $n"))
+
+    driver_values = _wavelet_markov_driver(n, g.H, g.cascade_depth, g.driver, rng)
+    regimes = quantize_to_symbols(driver_values, collect(1:length(g.transition_matrices)),
+                                  g.regime_weights)
+    symbol = weighted_sample(rng, target_marginal(g))
+    result = Vector{eltype(g.alphabet)}(undef, n)
+
+    @inbounds for t in 1:n
+        P = g.transition_matrices[regimes[t]]
+        symbol = weighted_sample(rng, @view P[symbol, :])
+        result[t] = g.alphabet[symbol]
+    end
+
+    return result, reshape(driver_values, 1, :)
+end
+
 function _wavelet_markov_driver(n::Int, H::Float64, cascade_depth::Int,
                                 driver::Symbol, rng::AbstractRNG)
     if driver === :spectral
