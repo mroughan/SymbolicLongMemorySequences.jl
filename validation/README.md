@@ -1,4 +1,4 @@
-# S5.jl Validation Studies
+# SymbolicLongMemorySequences.jl Validation Studies
 
 This folder contains reproducible simulation studies for generator controllability.
 These are not LRD estimators. They test whether a generator respects user-facing
@@ -12,7 +12,7 @@ sessions and package updates.
 
 See `../VALIDATION_POLICY.md` for the project validation tiers. Fast contract tests
 belong in `test/`; broader empirical evidence belongs here and should be run
-manually or behind explicit `S5_` environment flags.
+manually or behind explicit `SLMS_` environment flags.
 
 ## Marginal Control
 
@@ -26,6 +26,49 @@ The script prints aggregate total-variation and maximum absolute marginal errors
 all implemented generators across a small grid of sequence lengths, alphabet sizes,
 and marginal distributions.
 
+The same script also writes a focused uniform-marginal validation case for
+paper and report use:
+
+- `validation/results/marginal_control/uniform_marginal_k8_summary.csv`;
+- `validation/results/marginal_control/uniform_marginal_k8_histogram_data.csv`;
+- `validation/results/marginal_control/uniform_marginal_histograms_k8.svg`;
+- `validation/results/marginal_control/uniform_marginal_histograms_k8.pdf`
+  when a local converter such as `rsvg-convert` or Inkscape is available.
+
+This case uses `k = 8`, `n = 100_000`, 20 replicates, and a uniform categorical
+target. The first and last 10% of each generated sequence are dropped before
+frequencies are computed, reducing sensitivity to initialization and finite-end
+effects. The CSV reports chi-squared frequency diagnostics against the intended
+uniform marginal. Because the generated sequences are dependent, the iid
+multinomial chi-squared p-values are only a reference diagnostic, not exact
+hypothesis-test p-values. LRD can make empirical marginals converge more slowly
+than the iid multinomial model predicts, so this reference is often too
+conservative while still being informative.
+The summary also includes an approximate effective-sample-size correction. For
+each replicate, centered one-hot indicators estimate an integrated
+autocorrelation time for every symbol; the smallest symbol ESS is used as a
+conservative `effective_n`, and the chi-squared statistic is scaled by
+`effective_n / trimmed_n`. The adjusted p-values remain diagnostics, not exact
+LRD categorical tests, but they give a more realistic frequency check when
+dependence is strong.
+The CSV also reports full-sequence total-variation and maximum absolute errors
+beside the trimmed-window errors. This distinction matters for rank-binned and
+empirically calibrated property-based methods: `SpectralFGN`,
+`IntermittentMapSymbols`, and usually `LGCM` can match the full generated sample
+very closely while still showing interior-window deviations after trimming.
+
+For MB1a (`LAMP`) and MB1b (`DyadicLAMP`), this marginal-control study uses
+`lamp_repeat_transition(p; repeat_probability = 0.4)`. This keeps a
+repeat-biased LAMP mechanism while making the transition matrix ergodic with
+the requested marginal as its stationary distribution. A pure identity
+transition is a useful stress case, but it can lock in early finite-sample
+imbalances and is not the standard marginal-control validation case.
+
+A more formal marginal test should calibrate the null distribution under
+dependence. Good candidates are block/subsampling tests or a parametric Monte
+Carlo envelope generated from the same configured generator. Those are better
+suited to manual validation reports than to the fast package test suite.
+
 `LGCM` is more expensive than the other methods because it calibrates latent
 offsets over an `n × k` matrix. Increase `replicates`, `ns`, or
 `calibration_iters` manually when running longer studies.
@@ -34,8 +77,8 @@ Keep generated data out of the repository unless a result table is intentionally
 tracked.
 
 Large validation grids should be opt-in. Prefer keyword arguments in the script API
-and environment variables such as `S5_VALIDATION_LARGE=true` or
-`S5_VALIDATION_REPLICATES=<integer>` when a script grows beyond the default manual
+and environment variables such as `SLMS_VALIDATION_LARGE=true` or
+`SLMS_VALIDATION_REPLICATES=<integer>` when a script grows beyond the default manual
 run.
 
 ## Local Structure Control
@@ -52,6 +95,14 @@ Markov specifications. Each method uses identical `MarkovSpec` values in every
 regime, so the common transition matrix is an unambiguous aggregate bigram target.
 This study does not claim that mixtures of different regime specifications have a
 simple aggregate target.
+
+For larger alphabets, directly testing every entry of a transition matrix becomes
+data-hungry because there are `k^2` cells and some rows may be visited rarely.
+Shorter one-step diagnostics should test interpretable contrasts first:
+stationary-weighted row total variation, repeat probability, selected important
+rows, grouped symbol transitions, or the action of the matrix on a small number
+of contrast vectors. Full row-by-row tests are still appropriate for small `k`
+or explicitly large validation runs.
 
 ## LRD Method Diagnostics
 
@@ -160,7 +211,7 @@ rather than by estimator plotting alone.
 
 ## LongMemory.jl Comparison
 
-S5.jl does not depend on estimator packages at runtime, but validation can compare
+SymbolicLongMemorySequences.jl does not depend on estimator packages at runtime, but validation can compare
 the formalized diagnostic transformations with
 [`LongMemory.jl`](https://github.com/everval/LongMemory.jl). Instantiate the
 validation environment, then run:
@@ -173,11 +224,11 @@ julia --project=validation validation/longmemory_comparison.jl
 The comparison script adapts LongMemory.jl conventions explicitly:
 
 - `autocovariance(x, k)` and `autocorrelation(x, k)` return lags `0:k-1`;
-- S5 plots use lags `1:maxlag`, so the lag-zero autocorrelation is dropped;
+- SymbolicLongMemorySequences plots use lags `1:maxlag`, so the lag-zero autocorrelation is dropped;
 - LongMemory.jl periodograms report angular frequencies and include zero;
-- S5 plots use cycles per observation and drop zero frequency.
+- SymbolicLongMemorySequences plots use cycles per observation and drop zero frequency.
 
-The script reports maximum absolute differences between S5's local
+The script reports maximum absolute differences between SymbolicLongMemorySequences's local
 LongMemory-compatible helpers and LongMemory.jl's exported `autocovariance`,
 `autocorrelation`, and `periodogram` functions on the centered one-hot series.
 
@@ -193,13 +244,13 @@ julia --project=benchmark benchmark/benchmarks.jl
 Run the larger opt-in suite with:
 
 ```julia
-S5_BENCHMARK_LARGE=true julia --project=benchmark benchmark/benchmarks.jl
+SLMS_BENCHMARK_LARGE=true julia --project=benchmark benchmark/benchmarks.jl
 ```
 
 Run the rare sequence-length scaling suite with:
 
 ```julia
-S5_BENCHMARK_SCALING=true julia --project=benchmark benchmark/benchmarks.jl
+SLMS_BENCHMARK_SCALING=true julia --project=benchmark benchmark/benchmarks.jl
 ```
 
 The benchmark script writes `../benchmark/RESULTS.md`, CSV results, and SVG

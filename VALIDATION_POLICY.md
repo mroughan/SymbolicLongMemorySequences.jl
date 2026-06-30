@@ -1,6 +1,6 @@
-# S5.jl Validation Policy
+# SymbolicLongMemorySequences.jl Validation Policy
 
-S5.jl separates package correctness from empirical research evidence.
+SymbolicLongMemorySequences.jl separates package correctness from empirical research evidence.
 
 Fast tests protect public contracts: constructor validation, reproducible RNG use,
 output length and element type, alphabet membership, provenance metadata, and small
@@ -40,6 +40,26 @@ replicates, and write only aggregate outputs unless generated sequences are need
 for a documented diagnostic. Large generated sequences should stay out of version
 control.
 
+Marginal validation should include at least one simple, interpretable target.
+The default paper-facing case is a uniform categorical distribution with
+`k = 8`, dropping the first and last 10% of each sequence before computing
+frequencies. The retained outputs should include a histogram plot and a table of
+chi-squared frequency diagnostics. The raw chi-squared reference distribution is
+an iid multinomial approximation; for dependent LRD sequences it should be
+described as a diagnostic, not as an exact hypothesis test. Because LRD can slow
+convergence of empirical averages, the iid reference is usually too strict but
+still useful as an indicator of possible marginal-control problems. Retained
+uniform-marginal outputs should also include the implemented
+effective-sample-size correction, which estimates the integrated autocorrelation
+time of centered one-hot symbol indicators and scales the chi-squared statistic
+by the conservative ratio `effective_n / trimmed_n`.
+
+When a validation claim depends on formal marginal testing, prefer a
+dependence-aware calibration instead of a naive chi-squared p-value. The ESS
+correction is an approximate diagnostic; stronger extensions include block or
+subsampling tests, or a parametric Monte Carlo envelope generated from the same
+configured generator. These belong in manual validation, not the fast test path.
+
 Validation scripts may use `make_generator` for smoke tests of standard cases,
 but studies that support method-specific claims should prefer explicit
 constructors so the scientific parameters and assumptions remain visible in the
@@ -49,15 +69,22 @@ script.
 
 Long-running studies should expose keyword arguments and environment-variable
 flags rather than becoming part of the default test path. Preferred flag names use
-the `S5_` prefix, for example:
+the `SLMS_` prefix, for example:
 
-- `S5_VALIDATION_LARGE=true` for larger validation grids;
-- `S5_VALIDATION_REPLICATES=<integer>` for replicate counts;
-- `S5_VALIDATION_N=<integer>` or script-specific size variables when useful.
+- `SLMS_VALIDATION_LARGE=true` for larger validation grids;
+- `SLMS_VALIDATION_REPLICATES=<integer>` for replicate counts;
+- `SLMS_VALIDATION_N=<integer>` or script-specific size variables when useful.
 
 If a script writes retained output, it should record enough provenance to identify
 the generator settings, sequence length, replicate count, random seed, package
 version when available, and creation date.
+
+One-step Markov validation should start with aggregate contrasts when `k` is
+large. Full matrix tests have `k^2` cells and can require much longer sequences
+than marginal checks. Useful shorter diagnostics include repeat probability,
+stationary-weighted row total variation, selected row contrasts, and grouped
+symbol transitions. Full row-by-row tests should be reserved for smaller
+alphabets or explicitly large validation runs.
 
 Diagnostic transformations must be code, not just plotting lore. For LRD visual
 diagnostics, the symbolic sequence is transformed into centered one-hot numeric
@@ -96,8 +123,8 @@ julia --project=benchmark benchmark/benchmarks.jl
 The default suite should remain moderate. Larger benchmark runs are opt-in:
 
 ```julia
-S5_BENCHMARK_LARGE=true julia --project=benchmark benchmark/benchmarks.jl
-S5_BENCHMARK_SCALING=true julia --project=benchmark benchmark/benchmarks.jl
+SLMS_BENCHMARK_LARGE=true julia --project=benchmark benchmark/benchmarks.jl
+SLMS_BENCHMARK_SCALING=true julia --project=benchmark benchmark/benchmarks.jl
 ```
 
 Benchmark results should be interpreted as machine- and Julia-version-specific.
@@ -106,7 +133,7 @@ make platform-independent speed guarantees.
 
 ## Future Trigram Validation
 
-S5.jl already provides `empirical_trigram` for diagnostics, but it does not expose
+SymbolicLongMemorySequences.jl already provides `empirical_trigram` for diagnostics, but it does not expose
 a concrete trigram-control specification. Future trigram-control work should add a
 higher-order local-structure specification, focused constructor validation, fast
 unit tests for the specification contract, and manual validation studies for

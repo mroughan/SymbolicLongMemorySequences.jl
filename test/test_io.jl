@@ -17,7 +17,7 @@ import IncCSV
 
             @test meta["generator"] == "SpectralFGN"
             @test meta["method"]    == "PB1"
-            @test meta["package"]   == "S5"
+            @test meta["package"]   == "SymbolicLongMemorySequences"
             @test meta["n"]         == 200
 
             gp = meta["generator_params"]

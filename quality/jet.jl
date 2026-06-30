@@ -6,7 +6,7 @@ Pkg.develop(path = dirname(@__DIR__))
 Pkg.add("JET")
 
 using JET
-using S5
+using SymbolicLongMemorySequences
 
-JET.test_package(S5; target_modules = (S5,))
+JET.test_package(SymbolicLongMemorySequences; target_modules = (SymbolicLongMemorySequences,))
 

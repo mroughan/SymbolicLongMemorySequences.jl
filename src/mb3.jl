@@ -127,7 +127,7 @@ Distributions.jl.
 
 # Examples
 ```julia
-julia> S5._pareto_sample(MersenneTwister(1), 1.4, 1.0) >= 1.0
+julia> SymbolicLongMemorySequences._pareto_sample(MersenneTwister(1), 1.4, 1.0) >= 1.0
 true
 ```
 """

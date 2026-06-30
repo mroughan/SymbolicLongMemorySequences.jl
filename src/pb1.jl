@@ -120,7 +120,7 @@ Requires `n ≥ 4`.
 
 # Examples
 ```julia
-julia> x = S5._fgn_spectral(8, 0.75, MersenneTwister(1));
+julia> x = SymbolicLongMemorySequences._fgn_spectral(8, 0.75, MersenneTwister(1));
 julia> length(x), round(mean(x); digits = 12)
 (8, 0.0)
 ```

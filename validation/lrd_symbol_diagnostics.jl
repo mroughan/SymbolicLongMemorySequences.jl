@@ -39,7 +39,7 @@ end
     fft_unbiased_autocorrelation(x, maxlag) -> Vector{Float64}
 
 Return autocorrelations for lags `1:maxlag` using the convention previously used
-by the visual S5 validation plots: FFT convolution, sample mean removed by the
+by the visual SymbolicLongMemorySequences validation plots: FFT convolution, sample mean removed by the
 caller, lag covariance divided by `n - lag`, and normalization by lag-zero
 covariance divided by `n`.
 """
@@ -65,7 +65,7 @@ end
 """
     fft_periodogram_cycles(x) -> frequencies, power
 
-Return the positive-frequency periodogram used by the S5 validation plots.
+Return the positive-frequency periodogram used by the SymbolicLongMemorySequences validation plots.
 Frequencies are cycles per observation and exclude the zero-frequency term.
 """
 function fft_periodogram_cycles(x::AbstractVector{<:Real})
@@ -102,8 +102,8 @@ end
     longmemory_compatible_autocorrelation(x, k) -> Vector{Float64}
 
 Return lag `0:k-1` autocorrelations using the LongMemory.jl autocovariance
-normalization. This is useful for testing S5 transformations without making
-LongMemory.jl a runtime dependency of S5.jl.
+normalization. This is useful for testing SymbolicLongMemorySequences transformations without making
+LongMemory.jl a runtime dependency of SymbolicLongMemorySequences.jl.
 """
 function longmemory_compatible_autocorrelation(x::AbstractVector{<:Real}, k::Int)
     acv = longmemory_compatible_autocovariance(x, k)
@@ -115,7 +115,7 @@ end
     longmemory_compatible_periodogram(x) -> frequencies, power
 
 Return the same positive-frequency periodogram scale used by LongMemory.jl,
-adapted to S5's plotting convention. LongMemory.jl reports angular frequencies
+adapted to SymbolicLongMemorySequences's plotting convention. LongMemory.jl reports angular frequencies
 including zero; this helper reports cycles per observation and drops zero.
 """
 function longmemory_compatible_periodogram(x::AbstractVector{<:Real})
@@ -139,7 +139,7 @@ end
 """
     indicator_diagnostics(seq, alphabet; maxlag = length(seq) ÷ 2)
 
-Compute the visual S5 diagnostics: signed one-hot autocorrelation averaged across
+Compute the visual SymbolicLongMemorySequences diagnostics: signed one-hot autocorrelation averaged across
 symbols, and the positive-frequency one-hot periodogram averaged across symbols.
 
 The transformation is explicit: each symbol becomes a centered one-hot series,

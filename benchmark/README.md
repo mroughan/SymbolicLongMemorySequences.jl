@@ -1,6 +1,6 @@
-# S5.jl Benchmarks
+# SymbolicLongMemorySequences.jl Benchmarks
 
-This folder contains performance benchmarks for the implemented S5.jl generators.
+This folder contains performance benchmarks for the implemented SymbolicLongMemorySequences.jl generators.
 Benchmarks are machine-specific evidence, not correctness tests.
 
 Run from the package root:
@@ -23,13 +23,13 @@ The default suite covers all implemented generators across moderate sequence
 lengths and alphabet sizes. Larger runs are opt-in:
 
 ```julia
-S5_BENCHMARK_LARGE=true julia --project=benchmark benchmark/benchmarks.jl
+SLMS_BENCHMARK_LARGE=true julia --project=benchmark benchmark/benchmarks.jl
 ```
 
 Rare sequence-length scaling studies are opt-in and intentionally heavier:
 
 ```julia
-S5_BENCHMARK_SCALING=true julia --project=benchmark benchmark/benchmarks.jl
+SLMS_BENCHMARK_SCALING=true julia --project=benchmark benchmark/benchmarks.jl
 ```
 
 The scaling suite uses `n = 100, 1_000, 10_000, 100_000, 1_000_000`, defers the
@@ -39,11 +39,11 @@ per-synthesis averages from those trial timings.
 
 Additional knobs:
 
-- `S5_BENCHMARK_SAMPLES=<integer>` controls BenchmarkTools sample count.
-- `S5_BENCHMARK_SECONDS=<seconds>` controls the per-benchmark time budget.
-- `S5_BENCHMARK_SYNTH_REPEATS=<integer>` controls the number of independently
+- `SLMS_BENCHMARK_SAMPLES=<integer>` controls BenchmarkTools sample count.
+- `SLMS_BENCHMARK_SECONDS=<seconds>` controls the per-benchmark time budget.
+- `SLMS_BENCHMARK_SYNTH_REPEATS=<integer>` controls the number of independently
   seeded syntheses inside each BenchmarkTools trial.
-- `S5_BENCHMARK_WRITE_RESULTS=false` disables writing `RESULTS.md`, CSV, and
+- `SLMS_BENCHMARK_WRITE_RESULTS=false` disables writing `RESULTS.md`, CSV, and
   SVG plot artifacts.
 
 The benchmark labels include complexity-relevant settings such as `k`, `d` for

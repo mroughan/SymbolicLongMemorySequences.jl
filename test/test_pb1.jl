@@ -63,7 +63,7 @@ using Statistics: mean, std
     @testset "_fgn_spectral — length and normalisation" begin
         r = MersenneTwister(99)
         for n in [4, 5, 100, 999, 1_000, 4_096, 4_097]
-            x = S5._fgn_spectral(n, 0.8, r)
+            x = SymbolicLongMemorySequences._fgn_spectral(n, 0.8, r)
             @test length(x) == n
             @test isapprox(mean(x), 0.0; atol = 1e-10)
             @test isapprox(std(x),  1.0; atol = 1e-10)
@@ -74,7 +74,7 @@ using Statistics: mean, std
         # Estimate H from log-log periodogram regression; seeded for reproducibility.
         H_target = 0.75
         n        = 16_384
-        x        = S5._fgn_spectral(n, H_target, MersenneTwister(101))
+        x        = SymbolicLongMemorySequences._fgn_spectral(n, H_target, MersenneTwister(101))
 
         P     = abs2.(fft(x)) ./ n
         k_max = n ÷ 20

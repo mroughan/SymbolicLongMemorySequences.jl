@@ -56,7 +56,7 @@
         x_min = 1.0
         N     = 50_000
         r     = StableRNG(300)
-        draws = [S5._pareto_sample(r, alpha, x_min) for _ in 1:N]
+        draws = [SymbolicLongMemorySequences._pareto_sample(r, alpha, x_min) for _ in 1:N]
         @test all(>(x_min), draws)
         p90 = x_min / 0.1^(1 / alpha)         # theoretical 90th percentile
         @test isapprox(count(>(p90), draws) / N, 0.1; atol = 0.02)

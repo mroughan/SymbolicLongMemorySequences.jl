@@ -1,5 +1,5 @@
 import IncCSV
-using S5
+using SymbolicLongMemorySequences
 using StableRNGs
 using Statistics
 using LinearAlgebra: I
@@ -436,7 +436,7 @@ end
 function write_diagnostic_inc(path, rows, title, columns)
     metadata = Dict(
         "title" => title,
-        "package" => "S5",
+        "package" => "SymbolicLongMemorySequences",
         "created_by" => "validation/lrd_method_diagnostics.jl",
         "columns" => columns,
     )
@@ -579,7 +579,7 @@ function run_lrd_diagnostics(; n::Int = DEFAULT_N,
         acf_rows,
         "Average signed one-hot symbol autocorrelation by generator",
         Dict(
-            "method" => "S5 generator name",
+            "method" => "SymbolicLongMemorySequences generator name",
             "lag" => "integer lag",
             "autocorrelation" => "signed mean one-hot autocorrelation averaged across symbols and replicates",
         ),
@@ -589,7 +589,7 @@ function run_lrd_diagnostics(; n::Int = DEFAULT_N,
         pxx_rows,
         "Average one-hot symbol power spectrum by generator",
         Dict(
-            "method" => "S5 generator name",
+            "method" => "SymbolicLongMemorySequences generator name",
             "frequency" => "Fourier frequency after log-binning",
             "power" => "mean periodogram averaged across symbols and replicates",
         ),
@@ -599,7 +599,7 @@ function run_lrd_diagnostics(; n::Int = DEFAULT_N,
         acf_plot_rows,
         "Log-binned positive average autocorrelation used for SVG plots",
         Dict(
-            "method" => "S5 generator name",
+            "method" => "SymbolicLongMemorySequences generator name",
             "lag" => "geometric mean lag in log bin",
             "autocorrelation" => "positive binned mean autocorrelation",
         ),
@@ -609,7 +609,7 @@ function run_lrd_diagnostics(; n::Int = DEFAULT_N,
         pxx_plot_rows,
         "Log-binned average power spectrum used for SVG plots",
         Dict(
-            "method" => "S5 generator name",
+            "method" => "SymbolicLongMemorySequences generator name",
             "frequency" => "geometric mean Fourier frequency in log bin",
             "power" => "binned mean periodogram",
         ),
@@ -619,7 +619,7 @@ function run_lrd_diagnostics(; n::Int = DEFAULT_N,
         latent_acf_rows,
         "Average latent numerical autocorrelation by property-based generator",
         Dict(
-            "method" => "S5 property-based generator name",
+            "method" => "SymbolicLongMemorySequences property-based generator name",
             "lag" => "integer lag",
             "autocorrelation" => "mean latent autocorrelation averaged across latent streams and replicates",
         ),
@@ -629,7 +629,7 @@ function run_lrd_diagnostics(; n::Int = DEFAULT_N,
         latent_pxx_rows,
         "Average latent numerical power spectrum by property-based generator",
         Dict(
-            "method" => "S5 property-based generator name",
+            "method" => "SymbolicLongMemorySequences property-based generator name",
             "frequency" => "Fourier frequency",
             "power" => "mean latent periodogram averaged across latent streams and replicates",
         ),
@@ -639,7 +639,7 @@ function run_lrd_diagnostics(; n::Int = DEFAULT_N,
         latent_acf_plot_rows,
         "Log-binned latent autocorrelation used for property-based SVG plots",
         Dict(
-            "method" => "S5 property-based generator name",
+            "method" => "SymbolicLongMemorySequences property-based generator name",
             "lag" => "geometric mean lag in log bin",
             "autocorrelation" => "positive binned mean latent autocorrelation",
         ),
@@ -649,7 +649,7 @@ function run_lrd_diagnostics(; n::Int = DEFAULT_N,
         latent_pxx_plot_rows,
         "Log-binned latent power spectrum used for property-based SVG plots",
         Dict(
-            "method" => "S5 property-based generator name",
+            "method" => "SymbolicLongMemorySequences property-based generator name",
             "frequency" => "geometric mean Fourier frequency in log bin",
             "power" => "binned mean latent periodogram",
         ),

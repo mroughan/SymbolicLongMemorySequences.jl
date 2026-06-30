@@ -1,7 +1,7 @@
 """
     LRDGenerator
 
-Abstract supertype for all LRD symbol-sequence generators in S5.jl.
+Abstract supertype for all LRD symbol-sequence generators in SymbolicLongMemorySequences.jl.
 
 Concrete subtypes must implement:
 
@@ -77,7 +77,7 @@ end
 Return the Markov order of a local-structure specification.
 
 `MarkovSpec` has order 1. This function is the extension point for future
-higher-order local-structure specifications; S5.jl does not currently expose a
+higher-order local-structure specifications; SymbolicLongMemorySequences.jl does not currently expose a
 trigram-control specification.
 
 # Examples

@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to S5.jl are documented here.
+All notable changes to SymbolicLongMemorySequences.jl are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
@@ -31,7 +31,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Retained benchmark outputs under `benchmark/results/`, including CSV timings,
   histogram-style relative-time SVGs, sequence-length scaling SVGs, and
   `benchmark/RESULTS.md`.
-- A rare `S5_BENCHMARK_SCALING=true` benchmark mode for sequence-length scaling
+- A rare `SLMS_BENCHMARK_SCALING=true` benchmark mode for sequence-length scaling
   studies over `n = 100` through `1_000_000`, using repeated independently
   seeded syntheses per BenchmarkTools trial and deferring the `k = 64` case.
 - `generate_with_latent(g, n; rng)` for property-based generators, returning
@@ -42,7 +42,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Tests protecting the validation policy and benchmark infrastructure.
 - Reusable LRD symbol-diagnostic helpers for centered one-hot transformations,
   autocorrelation, autocovariance, and periodogram conventions.
-- A `validation/longmemory_comparison.jl` script comparing S5's formalized
+- A `validation/longmemory_comparison.jl` script comparing SymbolicLongMemorySequences's formalized
   diagnostic helpers with LongMemory.jl's `autocovariance`, `autocorrelation`,
   and `periodogram` functions.
 - Dashed interpretation-limit markers on LRD validation SVG plots, including the
@@ -55,11 +55,27 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - A selectable PB3 latent-driver path for `WaveletMarkov`, with `driver =
   :spectral` using spectral fGn rank-binning and `driver = :haar` retaining the
   original cascade for validation comparison.
+- A uniform `k = 8` marginal-validation study with trimmed-sequence histograms,
+  chi-squared frequency diagnostics, retained CSV outputs, and paper-ready
+  SVG/PDF plots under `validation/results/marginal_control/`.
+- Effective-sample-size adjusted chi-squared diagnostics for the uniform
+  marginal validation, based on integrated autocorrelation times of centered
+  one-hot symbol indicators.
+- Full-sequence marginal-error columns in the uniform marginal validation
+  summary, separating whole-sample control from trimmed-window fluctuations.
+- Documentation clarifying that chi-squared marginal diagnostics use an iid
+  reference that is conservative under LRD, with ESS-adjusted diagnostics and
+  stronger dependence-aware calibration options documented for manual
+  validation.
 
 ### Changed
+- Renamed the package and module from `S5` to
+  `SymbolicLongMemorySequences` to better match Julia package registration
+  naming guidance. The old `S5_BENCHMARK_*` environment variables remain
+  accepted as legacy aliases for the new `SLMS_BENCHMARK_*` names.
 - Added explicit compatibility bounds for standard-library dependencies so Aqua
   can enforce complete dependency compatibility metadata.
-- Fixed fresh-checkout Documenter CI setup by developing the unregistered S5 and
+- Fixed fresh-checkout Documenter CI setup by developing the unregistered SymbolicLongMemorySequences and
   IncCSV packages together before instantiating the documentation environment.
 - Removed obsolete proposal-specific references from package documentation and
   docstrings.
@@ -79,6 +95,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   driver choice in INC provenance metadata.
 - Added nominal exact power-law reference overlays to autocorrelation and
   power-spectrum validation SVG plots.
+- Changed MB1a/MB1b marginal-control validation to use a marginal-stationary
+  `lamp_repeat_transition` repeat kernel instead of a pure identity transition,
+  avoiding artificial lock-in of early finite-sample imbalances.
 - Added approximate short-range/asymptotic-onset markers to validation plots for
   generators with defensible onset scales, and documented MB4's weak
   power-spectrum behavior under the current finite Hawkes-style construction.

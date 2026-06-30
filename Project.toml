@@ -1,4 +1,4 @@
-name = "S5"
+name = "SymbolicLongMemorySequences"
 uuid = "47763e6f-3b8b-4f87-80b6-63f8f1c9da46"
 authors = ["Matthew Roughan <matthew.roughan@adelaide.edu.au>"]
 version = "0.1.0"

@@ -1,9 +1,9 @@
 using Test
 using Random
 using StableRNGs
-using S5
+using SymbolicLongMemorySequences
 
-@testset "S5.jl" begin
+@testset "SymbolicLongMemorySequences.jl" begin
     include("test_ci_configuration.jl")
     include("test_governance.jl")
     include("test_validation_policy.jl")

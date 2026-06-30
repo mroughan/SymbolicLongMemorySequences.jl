@@ -1,4 +1,4 @@
-module S5Benchmarks
+module SymbolicLongMemorySequencesBenchmarks
 
 using BenchmarkTools
 using Dates
@@ -7,7 +7,7 @@ using StableRNGs
 const ROOT = normpath(joinpath(@__DIR__, ".."))
 ROOT in LOAD_PATH || pushfirst!(LOAD_PATH, ROOT)
 
-using S5
+using SymbolicLongMemorySequences
 
 const DEFAULT_NS = (10_000, 100_000)
 const LARGE_NS = (10_000, 100_000, 1_000_000)
@@ -377,16 +377,36 @@ function write_artifacts(rows; mode::Symbol, samples::Int, seconds::Real,
                            mode, samples, seconds, syntheses_per_trial)
 end
 
-function run_suite(; large::Bool = get(ENV, "S5_BENCHMARK_LARGE", "false") == "true",
-                     scaling::Bool = get(ENV, "S5_BENCHMARK_SCALING", "false") == "true",
-                     samples::Int = parse(Int, get(ENV, "S5_BENCHMARK_SAMPLES",
-                                                   scaling ? "3" : "5")),
-                     seconds::Real = parse(Float64, get(ENV, "S5_BENCHMARK_SECONDS",
-                                                        scaling ? "0.1" : "2")),
+function _env_value(name::AbstractString, default::AbstractString;
+                    legacy::AbstractString = "")
+    if haskey(ENV, name)
+        return ENV[name]
+    elseif !isempty(legacy) && haskey(ENV, legacy)
+        return ENV[legacy]
+    end
+    return default
+end
+
+function run_suite(; large::Bool =
+                         _env_value("SLMS_BENCHMARK_LARGE", "false";
+                                    legacy = "S5_BENCHMARK_LARGE") == "true",
+                     scaling::Bool =
+                         _env_value("SLMS_BENCHMARK_SCALING", "false";
+                                    legacy = "S5_BENCHMARK_SCALING") == "true",
+                     samples::Int = parse(Int,
+                         _env_value("SLMS_BENCHMARK_SAMPLES", scaling ? "3" : "5";
+                                    legacy = "S5_BENCHMARK_SAMPLES")),
+                     seconds::Real = parse(Float64,
+                         _env_value("SLMS_BENCHMARK_SECONDS", scaling ? "0.1" : "2";
+                                    legacy = "S5_BENCHMARK_SECONDS")),
                      syntheses_per_trial::Int =
-                         parse(Int, get(ENV, "S5_BENCHMARK_SYNTH_REPEATS",
-                                        scaling ? "10" : "1")),
-                     write_results::Bool = get(ENV, "S5_BENCHMARK_WRITE_RESULTS", "true") == "true")
+                         parse(Int,
+                             _env_value("SLMS_BENCHMARK_SYNTH_REPEATS",
+                                        scaling ? "10" : "1";
+                                        legacy = "S5_BENCHMARK_SYNTH_REPEATS")),
+                     write_results::Bool =
+                         _env_value("SLMS_BENCHMARK_WRITE_RESULTS", "true";
+                                    legacy = "S5_BENCHMARK_WRITE_RESULTS") == "true")
     mode = scaling ? :scaling : (large ? :large : :default)
     ns = scaling ? SCALING_NS : (large ? LARGE_NS : DEFAULT_NS)
     ks = scaling ? SCALING_KS : DEFAULT_KS
@@ -405,4 +425,4 @@ if abspath(PROGRAM_FILE) == @__FILE__
     run_suite()
 end
 
-end # module S5Benchmarks
+end # module SymbolicLongMemorySequencesBenchmarks

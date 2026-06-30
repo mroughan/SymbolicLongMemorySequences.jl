@@ -1,4 +1,4 @@
-using S5
+using SymbolicLongMemorySequences
 using StableRNGs
 using Statistics
 

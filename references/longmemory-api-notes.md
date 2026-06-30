@@ -14,7 +14,7 @@ Relevant source files:
 - `src/LogPeriodEstimators.jl`
 - `test/runtests.jl`
 
-Observed API conventions used by S5 validation:
+Observed API conventions used by SymbolicLongMemorySequences validation:
 
 - `autocovariance(x::Array, k::Int)` returns lags `0:k-1` as a `k × 1` array.
 - `autocovariance` subtracts the sample mean and divides each lag sum by
@@ -24,7 +24,7 @@ Observed API conventions used by S5 validation:
 - `periodogram(x::Array)` returns `(I_w, w)`, where `w` is angular frequency and
   includes zero frequency.
 
-S5 validation adapts these conventions by converting symbolic sequences to
+SymbolicLongMemorySequences validation adapts these conventions by converting symbolic sequences to
 centered one-hot numeric series, dropping the lag-zero autocorrelation for plots
 over lags `1:maxlag`, converting angular frequency to cycles per observation,
 and dropping zero frequency before log-log spectrum plots.

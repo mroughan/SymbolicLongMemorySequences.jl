@@ -2,7 +2,7 @@ const ROOT = normpath(joinpath(@__DIR__, ".."))
 ROOT in LOAD_PATH || pushfirst!(LOAD_PATH, ROOT)
 
 using LongMemory
-using S5
+using SymbolicLongMemorySequences
 using StableRNGs
 using Statistics
 

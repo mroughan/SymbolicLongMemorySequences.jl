@@ -1,6 +1,6 @@
 # API
 
-S5.jl has two public construction paths:
+SymbolicLongMemorySequences.jl has two public construction paths:
 
 - use `make_generator` for standard, named cases across all implemented methods;
 - compose a `LatentSource` with a `Symbolizer` for property-based studies that
@@ -32,7 +32,7 @@ The factory is the cleanest way to list methods, inspect their standard
 parameters, and build a generator for examples, smoke tests, and benchmark grids.
 
 ```julia
-using S5, StableRNGs
+using SymbolicLongMemorySequences, StableRNGs
 
 alphabet = [:a, :b, :c]
 g = make_generator(:PB1, alphabet; H = 0.8, marginal = [0.2, 0.3, 0.5])
@@ -132,7 +132,7 @@ taxonomy explicit: PB1, PB2, PB3, and PB4 are standard combinations rather than
 unrelated mechanisms.
 
 ```julia
-using S5, StableRNGs
+using SymbolicLongMemorySequences, StableRNGs
 
 source = SpectralFGNSource(0.8)
 symbolizer = QuantileSymbolizer([:a, :b, :c], [0.2, 0.3, 0.5])
@@ -208,7 +208,7 @@ Use explicit constructors when a model needs exact transition matrices,
 excitation matrices, rates, or calibration parameters.
 
 ```julia
-using S5, StableRNGs
+using SymbolicLongMemorySequences, StableRNGs
 
 P1 = [0.9 0.1; 0.2 0.8]
 P2 = [0.3 0.7; 0.6 0.4]
@@ -283,7 +283,7 @@ Example output:
 
 `MarkovSpec` is currently used by `WaveletMarkov` and `OnOffMarkov`. The
 abstract `LocalStructureSpec` is the extension point for a future trigram or
-higher-order specification, but S5.jl does not yet expose trigram control.
+higher-order specification, but SymbolicLongMemorySequences.jl does not yet expose trigram control.
 
 ## Output And Provenance
 

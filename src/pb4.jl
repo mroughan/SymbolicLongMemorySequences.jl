@@ -13,7 +13,7 @@ rank-binned into `alphabet`, so finite-sample symbol counts are as close as
 possible to `marginal`.
 
 This is a latent-dynamics generator, not an exact symbolic LRD construction. The
-parameter `z` controls the strength of intermittency, but S5.jl does not claim a
+parameter `z` controls the strength of intermittency, but SymbolicLongMemorySequences.jl does not claim a
 closed-form finite-sample Hurst parameter for this model.
 
 # Arguments

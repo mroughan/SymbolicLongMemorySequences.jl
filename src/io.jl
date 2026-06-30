@@ -5,7 +5,7 @@ Write a generated symbol sequence to an INC file (IncCSV.jl format) with full
 provenance metadata.
 
 The INC file contains:
-- A metadata block recording the S5.jl package version, the generator type and
+- A metadata block recording the SymbolicLongMemorySequences.jl package version, the generator type and
   all its parameters, and the creation date.
 - A two-column CSV body: `index` (1-based integer) and `symbol` (string).
 
@@ -44,8 +44,8 @@ function _build_metadata(gen::SpectralFGN, n::Int, created::String)
     alp = join(string.(gen.alphabet), ",")
     mar = join(string.(round.(gen.marginal; digits = 8)), ",")
     Dict(
-        "title"     => "S5.jl synthetic LRD symbol sequence",
-        "package"   => "S5",
+        "title"     => "SymbolicLongMemorySequences.jl synthetic LRD symbol sequence",
+        "package"   => "SymbolicLongMemorySequences",
         "version"   => string(pkgversion(@__MODULE__)),
         "created"   => created,
         "n"         => n,
@@ -69,8 +69,8 @@ function _build_metadata(gen::LGCM, n::Int, created::String)
     alp = join(string.(gen.alphabet), ",")
     mar = join(string.(round.(gen.marginal; digits = 8)), ",")
     Dict(
-        "title"     => "S5.jl synthetic LRD symbol sequence",
-        "package"   => "S5",
+        "title"     => "SymbolicLongMemorySequences.jl synthetic LRD symbol sequence",
+        "package"   => "SymbolicLongMemorySequences",
         "version"   => string(pkgversion(@__MODULE__)),
         "created"   => created,
         "n"         => n,
@@ -97,8 +97,8 @@ function _build_metadata(gen::WaveletMarkov, n::Int, created::String)
     alp = join(string.(gen.alphabet), ",")
     rw  = join(string.(round.(gen.regime_weights; digits = 8)), ",")
     Dict(
-        "title"     => "S5.jl synthetic LRD symbol sequence",
-        "package"   => "S5",
+        "title"     => "SymbolicLongMemorySequences.jl synthetic LRD symbol sequence",
+        "package"   => "SymbolicLongMemorySequences",
         "version"   => string(pkgversion(@__MODULE__)),
         "created"   => created,
         "n"         => n,
@@ -125,8 +125,8 @@ function _build_metadata(gen::IntermittentMapSymbols, n::Int, created::String)
     alp = join(string.(gen.alphabet), ",")
     mar = join(string.(round.(gen.marginal; digits = 8)), ",")
     Dict(
-        "title"     => "S5.jl synthetic LRD symbol sequence",
-        "package"   => "S5",
+        "title"     => "SymbolicLongMemorySequences.jl synthetic LRD symbol sequence",
+        "package"   => "SymbolicLongMemorySequences",
         "version"   => string(pkgversion(@__MODULE__)),
         "created"   => created,
         "n"         => n,
@@ -151,8 +151,8 @@ function _build_metadata(gen::PropertyBasedGenerator, n::Int, created::String)
     sym = gen.symbolizer
     alp = join(string.(_symbolizer_alphabet(sym)), ",")
     Dict(
-        "title"     => "S5.jl synthetic LRD symbol sequence",
-        "package"   => "S5",
+        "title"     => "SymbolicLongMemorySequences.jl synthetic LRD symbol sequence",
+        "package"   => "SymbolicLongMemorySequences",
         "version"   => string(pkgversion(@__MODULE__)),
         "created"   => created,
         "n"         => n,
@@ -179,8 +179,8 @@ function _build_metadata(gen::LAMP, n::Int, created::String)
     P = join((join(string.(round.(gen.transition_matrix[i, :]; digits = 8)), ",")
               for i in axes(gen.transition_matrix, 1)), ";")
     Dict(
-        "title"     => "S5.jl synthetic LRD symbol sequence",
-        "package"   => "S5",
+        "title"     => "SymbolicLongMemorySequences.jl synthetic LRD symbol sequence",
+        "package"   => "SymbolicLongMemorySequences",
         "version"   => string(pkgversion(@__MODULE__)),
         "created"   => created,
         "n"         => n,
@@ -206,8 +206,8 @@ function _build_metadata(gen::CalibratedAdditiveMarkov, n::Int, created::String)
     alp = join(string.(gen.alphabet), ",")
     mar = join(string.(round.(gen.marginal; digits = 8)), ",")
     Dict(
-        "title"     => "S5.jl synthetic LRD symbol sequence",
-        "package"   => "S5",
+        "title"     => "SymbolicLongMemorySequences.jl synthetic LRD symbol sequence",
+        "package"   => "SymbolicLongMemorySequences",
         "version"   => string(pkgversion(@__MODULE__)),
         "created"   => created,
         "n"         => n,
@@ -236,8 +236,8 @@ function _build_metadata(gen::DyadicLAMP, n::Int, created::String)
     P = join((join(string.(round.(gen.transition_matrix[i, :]; digits = 8)), ",")
               for i in axes(gen.transition_matrix, 1)), ";")
     Dict(
-        "title"     => "S5.jl synthetic LRD symbol sequence",
-        "package"   => "S5",
+        "title"     => "SymbolicLongMemorySequences.jl synthetic LRD symbol sequence",
+        "package"   => "SymbolicLongMemorySequences",
         "version"   => string(pkgversion(@__MODULE__)),
         "created"   => created,
         "n"         => n,
@@ -265,8 +265,8 @@ function _build_metadata(gen::OnOffMarkov, n::Int, created::String)
     alp = join(string.(gen.alphabet), ",")
     H   = (3 - gen.alpha) / 2
     Dict(
-        "title"     => "S5.jl synthetic LRD symbol sequence",
-        "package"   => "S5",
+        "title"     => "SymbolicLongMemorySequences.jl synthetic LRD symbol sequence",
+        "package"   => "SymbolicLongMemorySequences",
         "version"   => string(pkgversion(@__MODULE__)),
         "created"   => created,
         "n"         => n,
@@ -293,8 +293,8 @@ function _build_metadata(gen::FSS, n::Int, created::String)
     rats = join(string.(round.(gen.rates; digits = 8)), ",")
     H    = (3 - gen.alpha) / 2
     Dict(
-        "title"     => "S5.jl synthetic LRD symbol sequence",
-        "package"   => "S5",
+        "title"     => "SymbolicLongMemorySequences.jl synthetic LRD symbol sequence",
+        "package"   => "SymbolicLongMemorySequences",
         "version"   => string(pkgversion(@__MODULE__)),
         "created"   => created,
         "n"         => n,
@@ -322,8 +322,8 @@ function _build_metadata(gen::HawkesSymbol, n::Int, created::String)
     E = join((join(string.(round.(gen.excitation[i, :]; digits = 8)), ",")
               for i in axes(gen.excitation, 1)), ";")
     Dict(
-        "title"     => "S5.jl synthetic LRD symbol sequence",
-        "package"   => "S5",
+        "title"     => "SymbolicLongMemorySequences.jl synthetic LRD symbol sequence",
+        "package"   => "SymbolicLongMemorySequences",
         "version"   => string(pkgversion(@__MODULE__)),
         "created"   => created,
         "n"         => n,
@@ -352,8 +352,8 @@ function _build_metadata(gen::DuplicationMutation, n::Int, created::String)
     alp = join(string.(gen.alphabet), ",")
     mar = join(string.(round.(gen.marginal; digits = 8)), ",")
     Dict(
-        "title"     => "S5.jl synthetic LRD symbol sequence",
-        "package"   => "S5",
+        "title"     => "SymbolicLongMemorySequences.jl synthetic LRD symbol sequence",
+        "package"   => "SymbolicLongMemorySequences",
         "version"   => string(pkgversion(@__MODULE__)),
         "created"   => created,
         "n"         => n,

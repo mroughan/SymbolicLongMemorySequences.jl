@@ -1,12 +1,12 @@
-# S5.jl
+# SymbolicLongMemorySequences.jl
 
-[![Package tests](https://github.com/mroughan/S5.jl/actions/workflows/ci.yml/badge.svg)](https://github.com/mroughan/S5.jl/actions/workflows/ci.yml)
-[![Aqua](https://github.com/mroughan/S5.jl/actions/workflows/aqua.yml/badge.svg)](https://github.com/mroughan/S5.jl/actions/workflows/aqua.yml)
-[![JET](https://github.com/mroughan/S5.jl/actions/workflows/jet.yml/badge.svg)](https://github.com/mroughan/S5.jl/actions/workflows/jet.yml)
-[![Docs](https://img.shields.io/badge/docs-dev-blue.svg)](https://mroughan.github.io/S5.jl/dev/)
-[![Codecov](https://codecov.io/gh/mroughan/S5.jl/branch/main/graph/badge.svg?token=WYXfD9ij0s)](https://codecov.io/gh/mroughan/S5.jl)
-[![Documenter](https://github.com/mroughan/S5.jl/actions/workflows/documentation.yml/badge.svg)](https://github.com/mroughan/S5.jl/actions/workflows/documentation.yml)
-[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://mroughan.github.io/S5.jl/dev)
+[![Package tests](https://github.com/mroughan/SymbolicLongMemorySequences.jl/actions/workflows/ci.yml/badge.svg)](https://github.com/mroughan/SymbolicLongMemorySequences.jl/actions/workflows/ci.yml)
+[![Aqua](https://github.com/mroughan/SymbolicLongMemorySequences.jl/actions/workflows/aqua.yml/badge.svg)](https://github.com/mroughan/SymbolicLongMemorySequences.jl/actions/workflows/aqua.yml)
+[![JET](https://github.com/mroughan/SymbolicLongMemorySequences.jl/actions/workflows/jet.yml/badge.svg)](https://github.com/mroughan/SymbolicLongMemorySequences.jl/actions/workflows/jet.yml)
+[![Docs](https://img.shields.io/badge/docs-dev-blue.svg)](https://mroughan.github.io/SymbolicLongMemorySequences.jl/dev/)
+[![Codecov](https://codecov.io/gh/mroughan/SymbolicLongMemorySequences.jl/branch/main/graph/badge.svg?token=WYXfD9ij0s)](https://codecov.io/gh/mroughan/SymbolicLongMemorySequences.jl)
+[![Documenter](https://github.com/mroughan/SymbolicLongMemorySequences.jl/actions/workflows/documentation.yml/badge.svg)](https://github.com/mroughan/SymbolicLongMemorySequences.jl/actions/workflows/documentation.yml)
+[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://mroughan.github.io/SymbolicLongMemorySequences.jl/dev)
 [![Julia](https://img.shields.io/badge/julia-1.10%2B-blue.svg)](https://julialang.org/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
@@ -14,17 +14,23 @@
 
 Long-memory is a feature of many natural sequences, closely relate to statistical self-similarity. In the past, numerical sequences starting with the size of Nile river floods have been the main topic of study. But there are many domains where there are (hypothesised) long-memory sequences that are non-numerical, symbolic sequences. For instance: human writing, DNA, and so forth.
 
-S5.jl is a Julia package for generating Long-Range Dependent (LRD) sequences of
+SymbolicLongMemorySequences.jl is a Julia package for generating Long-Range Dependent (LRD) sequences of
 non-numerical (categorical/symbolic) data. It provides controllable synthetic
 sequences for testing LRD estimators, probing information-theoretic quantities,
 and training or stress-testing sequence models on non-language data with
 language-like long context.
 
+The package was previously developed as `S5.jl`. It has been renamed to
+`SymbolicLongMemorySequences.jl` for Julia package registration, where clear
+descriptive names are preferred over short acronym-heavy names.
+
+This is an early version. Lots of changes and tests still to come. 
+
 ---
 
 ## Motivations
 
-S5.jl is useful beyond basic generator benchmarking:
+SymbolicLongMemorySequences.jl is useful beyond basic generator benchmarking:
 
 - **Estimator testing:** generate labelled NN-LRD (NonNumerical LRD) sequences where alphabet, marginal
   distribution, local structure, and nominal LRD mechanism are known.
@@ -67,7 +73,7 @@ parameters: the ACF decay exponent $\beta$, the spectral exponent $\alpha = 1 - 
 and the Hurst parameter $H = (2 - \beta)/2$ with $H \in (1/2, 1)$.
 
 LRD is ubiquitous in human-generated data (text, Internet traffic, genomics, social
-media), yet almost all synthesis tools target numerical data. S5.jl fills that gap for
+media), yet almost all synthesis tools target numerical data. SymbolicLongMemorySequences.jl fills that gap for
 **symbol sequences** — data that takes values in a finite, unordered alphabet such as
 `{Orange, Apple,  Pear, ...}` or `{G, A, C, T}`.
 
@@ -87,7 +93,7 @@ Complexity notation used below:
 Standard cases can be constructed through the uniform factory API:
 
 ```julia
-using S5, StableRNGs
+using SymbolicLongMemorySequences, StableRNGs
 
 alphabet = [:a, :b, :c]
 g = make_generator(:PB1, alphabet; H = 0.8, marginal = [0.2, 0.3, 0.5])
@@ -261,7 +267,7 @@ symbol adds a power-law weighted row of an excitation matrix to the current
 intensity vector. Identity-like excitation creates bursty repeat behavior; off-
 diagonal excitation can encode cross-symbol triggering. The model is motivated by
 Ogura, Hanada, Amano & Kondo (2022), who model long-range dynamic correlations of
-word occurrences in written text with Hawkes processes. In S5.jl this is a
+word occurrences in written text with Hawkes processes. In SymbolicLongMemorySequences.jl this is a
 symbol-sequence generator rather than a fitted continuous-time text model.
 
 **MB5 — Duplication-mutation symbolic growth.**
@@ -306,12 +312,38 @@ Reproducible simulation studies live in `validation/`. For example:
 
 ```julia
 julia --project=. validation/marginal_control.jl
+julia --project=. validation/local_structure.jl
 julia --project=. validation/lrd_method_diagnostics.jl
 julia --project=validation validation/longmemory_comparison.jl
 ```
 
 These studies test controllability of simulated data; LRD-parameter estimation is
 intended for a future separate estimator package.
+
+The marginal-control validation includes a paper-ready uniform categorical test
+with `k = 8`. For each method it drops the first and last 10% of the generated
+sequence, compares the remaining symbol frequencies with the intended uniform
+marginal, writes a CSV table of chi-squared diagnostics, and creates a combined
+histogram grid under `validation/results/marginal_control/`. The chi-squared
+p-values use the iid multinomial reference distribution, so they are useful
+frequency diagnostics rather than exact hypothesis tests for dependent LRD
+sequences. In fact, LRD can make empirical marginals converge more slowly than
+the iid multinomial model assumes, so the strict chi-squared reference is often
+too conservative even though large values remain indicative of a control issue.
+The same CSV also reports an approximate effective-sample-size correction:
+centered one-hot indicators are used to estimate an integrated autocorrelation
+time for each symbol, the smallest symbol ESS is used as a conservative
+sequence-level `effective_n`, and the chi-squared statistic is scaled by
+`effective_n / trimmed_n`. These ESS-adjusted p-values are still diagnostics,
+not exact dependent categorical tests, but they are less misleading for strongly
+dependent sequences than the iid reference alone.
+The CSV reports both full-sequence and trimmed-window marginal errors, because
+rank-binning or empirical calibration can control the whole generated sample
+while an interior window still fluctuates under dependence.
+For the LAMP-family marginal-control cases, validation uses
+`lamp_repeat_transition(p; repeat_probability = 0.4)`, whose stationary
+distribution is the requested marginal. The pure identity transition remains
+available as a stress case but can preserve early imbalances for a long time.
 
 The LRD diagnostic transformation is formalized in
 `validation/lrd_symbol_diagnostics.jl`: symbols are converted to centered one-hot
@@ -338,15 +370,15 @@ not just stronger identity excitation.
 
 Validation policy is documented in `VALIDATION_POLICY.md`. The fast package test
 suite remains the main development pathway, while larger empirical studies are run
-manually or behind explicit flags such as `S5_VALIDATION_LARGE=true`.
+manually or behind explicit flags such as `SLMS_VALIDATION_LARGE=true`.
 
 Benchmarks live in `benchmark/` and use a separate `Project.toml` with
 BenchmarkTools.jl:
 
 ```julia
 julia --project=benchmark benchmark/benchmarks.jl
-S5_BENCHMARK_LARGE=true julia --project=benchmark benchmark/benchmarks.jl
-S5_BENCHMARK_SCALING=true julia --project=benchmark benchmark/benchmarks.jl
+SLMS_BENCHMARK_LARGE=true julia --project=benchmark benchmark/benchmarks.jl
+SLMS_BENCHMARK_SCALING=true julia --project=benchmark benchmark/benchmarks.jl
 ```
 
 The default benchmark run writes `benchmark/RESULTS.md`, a CSV table under
@@ -364,6 +396,18 @@ available through `empirical_trigram`, but a concrete trigram-control
 specification is intentionally left for future work. The code now exposes
 `LocalStructureSpec` and `local_structure_order` as the extension path for that
 higher-order API.
+For one-step Markov behavior, direct matrix testing has `k^2` cells and quickly
+needs much more data than marginal testing. A practical shortcut is to test
+low-dimensional contrasts of the transition matrix: repeat probability, selected
+row total-variation errors, stationary-weighted row error, and application-level
+symbol groups, while reserving full row-by-row tests for smaller alphabets or
+large validation runs.
+
+A more formal marginal test than the approximate ESS-adjusted chi-squared
+diagnostic would estimate the null distribution under dependence. Practical
+options are block/subsampling tests or a parametric Monte Carlo envelope
+generated from the same configured method. Those are validation extensions
+rather than fast package tests.
 
 
 

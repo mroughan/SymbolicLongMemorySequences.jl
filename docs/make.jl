@@ -1,9 +1,9 @@
 using Documenter
-using S5
+using SymbolicLongMemorySequences
 
 makedocs(
-    sitename = "S5.jl",
-    modules  = [S5],
+    sitename = "SymbolicLongMemorySequences.jl",
+    modules  = [SymbolicLongMemorySequences],
     format   = Documenter.HTML(
         prettyurls = get(ENV, "CI", nothing) == "true",
         canonical  = nothing,
@@ -19,6 +19,6 @@ makedocs(
 )
 
 deploydocs(
-    repo = "github.com/mroughan/S5.jl.git",
+    repo = "github.com/mroughan/SymbolicLongMemorySequences.jl.git",
     devbranch = "main",
 )

@@ -1,8 +1,8 @@
-# S5.jl
+# SymbolicLongMemorySequences.jl
 
 **Self-Similar Symbols Sequence Synthesis**
 
-S5.jl generates Long-Range Dependent (LRD) sequences of categorical
+SymbolicLongMemorySequences.jl generates Long-Range Dependent (LRD) sequences of categorical
 (non-numerical) symbols. It produces controllable synthetic data for LRD
 estimator tests, information-theoretic experiments, and LLM-style neural
 sequence models trained on challenging non-language symbolic streams.
@@ -10,7 +10,7 @@ sequence models trained on challenging non-language symbolic streams.
 ## Quick start
 
 ```julia
-using S5, StableRNGs
+using SymbolicLongMemorySequences, StableRNGs
 
 rng = StableRNG(42)
 
@@ -125,7 +125,7 @@ unambiguous aggregate target.
 
 `MarkovSpec` is the current concrete `LocalStructureSpec`, and
 `local_structure_order(spec)` returns its order. This is the intended extension
-point for future sparse higher-order controls. S5.jl currently provides
+point for future sparse higher-order controls. SymbolicLongMemorySequences.jl currently provides
 `empirical_trigram` for diagnostics, but it does not expose a trigram-control
 specification.
 
@@ -142,7 +142,7 @@ Reproducible controllability studies and performance runs are documented on
 
 ## Motivations
 
-S5.jl is intended for several related research uses:
+SymbolicLongMemorySequences.jl is intended for several related research uses:
 
 - testing NN-LRD estimators on sequences with known generator settings;
 - probing excess entropy rate, entropy-rate convergence, and other
@@ -168,8 +168,8 @@ The resulting file has this structure:
 
 ```
 ---
-title = S5.jl synthetic LRD symbol sequence
-package = S5
+title = SymbolicLongMemorySequences.jl synthetic LRD symbol sequence
+package = SymbolicLongMemorySequences
 version = "0.1.0"
 generator = SpectralFGN
 method = PB1
@@ -202,7 +202,7 @@ with Hurst parameter $H = (2-\beta)/2 \in (1/2, 1)$.
 
 LRD is ubiquitous in human-generated data (natural language, Internet traffic,
 genomics, social media), yet almost all LRD synthesis tools target numerical
-data. S5.jl fills that gap for **symbol sequences** — data taking values in a
+data. SymbolicLongMemorySequences.jl fills that gap for **symbol sequences** — data taking values in a
 finite, unordered alphabet.
 
 ## References

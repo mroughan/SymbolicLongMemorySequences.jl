@@ -6,7 +6,7 @@ Pkg.develop(path = dirname(@__DIR__))
 Pkg.add("Aqua")
 
 using Aqua
-using S5
+using SymbolicLongMemorySequences
 
-Aqua.test_all(S5; stale_deps = (ignore = [:StableRNGs],))
+Aqua.test_all(SymbolicLongMemorySequences; stale_deps = (ignore = [:StableRNGs],))
 

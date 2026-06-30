@@ -34,7 +34,7 @@ end
 """
     MethodInfo
 
-Metadata returned by [`method_info`](@ref) for one S5 synthesis method.
+Metadata returned by [`method_info`](@ref) for one SymbolicLongMemorySequences synthesis method.
 
 Fields:
 - `id`: stable method identifier, such as `:PB1` or `:MB5`.
@@ -91,7 +91,7 @@ const _METHOD_ALIASES = Dict{Symbol, Symbol}(
 function _canonical_method_id(id)
     sym = Symbol(id)
     haskey(_METHOD_ALIASES, sym) ||
-        throw(ArgumentError("unknown S5 method id or type name: $id"))
+        throw(ArgumentError("unknown SymbolicLongMemorySequences method id or type name: $id"))
     return _METHOD_ALIASES[sym]
 end
 
@@ -433,7 +433,7 @@ end
 """
     make_generator(id, alphabet; kwargs...) -> LRDGenerator
 
-Construct a standard S5 generator by method identifier.
+Construct a standard SymbolicLongMemorySequences generator by method identifier.
 
 This is a convenience API for common cases. It does not replace the explicit
 scientific constructors: use `method_info(id).defaults` to inspect default

@@ -1,9 +1,9 @@
 """
-    S5
+    SymbolicLongMemorySequences
 
 **Self-Similar Symbols Sequence Synthesis.**
 
-S5.jl generates Long-Range Dependent (LRD) sequences of categorical (non-numerical)
+SymbolicLongMemorySequences.jl generates Long-Range Dependent (LRD) sequences of categorical (non-numerical)
 symbols for use as ground-truth test data in LRD estimation studies.
 
 # Generators
@@ -42,7 +42,7 @@ julia> length(generate(g, 16; rng = MersenneTwister(1)))
 ```
 
 """
-module S5
+module SymbolicLongMemorySequences
 
 using FFTW: ifft
 using Dates: today
@@ -85,4 +85,4 @@ include("factory.jl")
 include("controls.jl")
 include("io.jl")
 
-end # module S5
+end # module SymbolicLongMemorySequences

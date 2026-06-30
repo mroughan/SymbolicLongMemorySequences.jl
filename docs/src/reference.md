@@ -3,7 +3,7 @@
 ## Abstract type
 
 ```@docs
-S5
+SymbolicLongMemorySequences
 LRDGenerator
 ```
 
@@ -72,7 +72,7 @@ rowwise_total_variation
 validate_transition_matrix
 stationary_distribution
 lamp_repeat_transition
-S5.quantize_to_symbols
-S5._fgn_spectral
-S5._pareto_sample
+SymbolicLongMemorySequences.quantize_to_symbols
+SymbolicLongMemorySequences._fgn_spectral
+SymbolicLongMemorySequences._pareto_sample
 ```

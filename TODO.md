@@ -1,6 +1,6 @@
-# S5.jl TODO
+# SymbolicLongMemorySequences.jl TODO
 
-Estimator development will live elsewhere. S5.jl should therefore focus on:
+Estimator development will live elsewhere. SymbolicLongMemorySequences.jl should therefore focus on:
 
 - generating symbol sequences with explicit provenance;
 - exposing clear controls for alphabet, marginal distribution, and local structure;
@@ -50,7 +50,7 @@ Deferred to a future estimation package:
 - Strong validation that generated sequences recover a target Hurst parameter under a
   particular estimator.
 
-S5.jl may include light sanity checks that guard against obvious regressions, but it
+SymbolicLongMemorySequences.jl may include light sanity checks that guard against obvious regressions, but it
 should not grow into the estimator package.
 
 ---
@@ -131,7 +131,7 @@ Store aggregate results, not every generated sequence.
 ### Local Structure Control
 
 Users may want to specify short-range structure such as bigram or trigram
-probabilities. Not every generator can support this naturally, so S5.jl should expose
+probabilities. Not every generator can support this naturally, so SymbolicLongMemorySequences.jl should expose
 capabilities rather than pretending all methods can do everything.
 
 Current capability:
@@ -221,7 +221,7 @@ Useful metrics:
 
 - [x] Add `benchmark/benchmarks.jl` using BenchmarkTools.jl.
 - [x] Measure wall time and allocations for `n in (10^4, 10^5)`, with
-      `10^6` available through `S5_BENCHMARK_LARGE=true`.
+      `10^6` available through `SLMS_BENCHMARK_LARGE=true`.
 - [x] Include alphabet sizes `k in (2, 8, 64)` where feasible.
 - [x] Include skewed marginal/rate settings.
 - [x] Report complexity-relevant parameters:
@@ -248,7 +248,7 @@ the current PB/MB set:
 - [x] **Expansion-modification / duplication-mutation symbolic generator.** Li's
       expansion-modification model and later duplication-mutation DNA work
       provide a natural symbolic mechanism for DNA-like sequences. This is a
-      good candidate if S5.jl adds a generator whose scientific identity is
+      good candidate if SymbolicLongMemorySequences.jl adds a generator whose scientific identity is
       copy-mutate growth rather than latent Gaussian, LAMP, or renewal-process
       synthesis. Implemented initially as `DuplicationMutation`; the current
       version uses a power-law copy-distance kernel after validation showed that
@@ -262,7 +262,7 @@ the current PB/MB set:
       controls can be stated cleanly.
 - [x] **Intermittent-map symbolic generator.** Provata and Beck (2012) show that
       coupled intermittent maps can create DNA-like symbolic statistics. This is
-      less immediate for S5.jl because map parameters do not directly translate
+      less immediate for SymbolicLongMemorySequences.jl because map parameters do not directly translate
       to alphabet, marginal, bigram, and LRD control contracts, but it is worth
       keeping as a lower-priority research candidate. Implemented initially as
       `IntermittentMapSymbols`, with the API explicitly framed as a latent
